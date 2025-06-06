@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualisation des Pages</title>
+    <meta name="description" content="L'actualité marocaine par l'intelligence artificielle">
+    <style>
+        :root {
+            --primary-color: #01324E;
+            --background-color: #f8f4f1;
+            --text-color: #333;
+            --border-radius: 8px;
+            --transition: all 0.3s ease;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        html {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-color);
+            line-height: 1.5;
+        }
+        body {
+            background-color: var(--background-color);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            background-color: var(--background-color);
+            color: var(--primary-color);
+
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            animation: fadeIn 0.6s ease-out;
+        }
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .header-top {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .logo {
+            height: 50px;
+            transition: var(--transition);
+        }
+        .logo:hover {
+            transform: scale(1.05);
+        }
+        .header-top h1 {
+            font-size: clamp(1rem, 2.5vw, 1.4rem);
+            font-weight: 600;
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+        .control-group {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+        }
+        .control-group:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        .control-group span {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-right: 0.5rem;
+        }
+        .radio-options {
+            display: flex;
+            gap: 0px; 
+        }
+        .radio-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+        .radio-label:hover, .radio-label:focus-within {
+            background-color: rgba(1, 50, 78, 0.1);
+        }
+        .radio-label input[type="radio"] {
+            margin-right: 0.5rem;
+            accent-color: var(--primary-color);
+        }
+        input[type="radio"]:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+        .main-content {
+            flex-grow: 1;
+            position: relative;
+        }
+        .content-frame {
+            border: none;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+        }
+        .loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        .loading.show {
+            display: flex;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 768px) {
+            .header-content { padding: 0.3rem; }
+            .header-top { gap: 0.5rem; }
+            .logo { height: 25px; }
+            .header-top h1 { font-size: 0.85rem; }
+            .control-group { padding: 0.3rem 0.5rem; }
+            .control-group span { font-size: 0.7rem; margin-right: 0.3rem; }
+            .radio-label { padding: 0.2rem 0.3rem; font-size: 0.8rem; }
+            .radio-label input[type="radio"] { margin-right: 0.3rem; }
+        }
+        @media (max-width: 480px) {
+            .header-top h1 { font-size: 0.7rem; }
+            .logo { height: 30px; }
+            .control-group span { font-size: 0.65rem; }
+            .radio-label { font-size: 0.6rem; }
+            .radio-label input[type="radio"] { transform: scale(0.8); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="header-top">
+                <img src="logo.png" alt="Logo de l'actualité marocaine" class="logo">
+                <h1>L'actualité marocaine par l'intelligence artificielle</h1>
+            </div>
+            <div class="controls" role="group" aria-label="Options de visualisation">
+                <div class="control-group">
+                    <span>Vue:</span>
+                    <div class="radio-options">
+                        <label class="radio-label">
+                            <input type="radio" name="view" value="1" checked> Simple
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="view" value="2"> Carte
+                        </label>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <span>Presse en:</span>
+                    <div class="radio-options">
+			<label class="radio-label">
+                            <input type="radio" name="lang" value="ar">Arabe
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="lang" value="fr" checked>Français
+                        </label>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="loading" id="loading">Chargement...</div>
+        <iframe id="content-frame" class="content-frame" title="Contenu principal de l'actualité" loading="lazy">
+        </iframe>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const iframe = document.getElementById('content-frame');
+            const loadingIndicator = document.getElementById('loading');
+            const controls = document.querySelector('.controls');
+
+            const showLoading = () => loadingIndicator.classList.add('show');
+            const hideLoading = () => loadingIndicator.classList.remove('show');
+
+            const updatePage = () => {
+                const view = document.querySelector('input[name="view"]:checked')?.value || '1';
+                const lang = document.querySelector('input[name="lang"]:checked')?.value || 'fr';
+                const filename = `${lang}${view}.html`;
+                
+                if (iframe.src.endsWith(filename)) return;
+
+                showLoading();
+                iframe.src = filename;
+
+                if (history.pushState) {
+                    const url = new URL(window.location);
+                    url.searchParams.set('view', view);
+                    url.searchParams.set('lang', lang);
+                    history.pushState({ view, lang }, '', url);
+                }
+            };
+
+            const initializeFromUrl = () => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const view = urlParams.get('view');
+                const lang = urlParams.get('lang');
+
+                if (view) {
+                    document.querySelector(`input[name="view"][value="${view}"]`).checked = true;
+                }
+                if (lang) {
+                    document.querySelector(`input[name="lang"][value="${lang}"]`).checked = true;
+                }
+                updatePage();
+            };
+
+            controls.addEventListener('change', updatePage);
+            iframe.addEventListener('load', hideLoading);
+            iframe.addEventListener('error', () => {
+                hideLoading();
+            });
+
+            initializeFromUrl();
+        });
+    </script>
+</body>
+</html>
