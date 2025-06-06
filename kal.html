@@ -169,10 +169,10 @@
                     <span>Vue:</span>
                     <div class="radio-options">
                         <label class="radio-label">
-                            <input type="radio" name="view" value="1" checked> Simple
+                            <input type="radio" name="view" value="2" checked> Simple
                         </label>
                         <label class="radio-label">
-                            <input type="radio" name="view" value="2"> Carte
+                            <input type="radio" name="view" value="1"> Carte
                         </label>
                     </div>
                 </div>
@@ -180,10 +180,10 @@
                     <span>Presse en:</span>
                     <div class="radio-options">
 			<label class="radio-label">
-                            <input type="radio" name="lang" value="ar">Arabe
+                            <input type="radio" name="lang" value="ar" checked>Arabe
                         </label>
                         <label class="radio-label">
-                            <input type="radio" name="lang" value="fr" checked>Français
+                            <input type="radio" name="lang" value="fr">Français
                         </label>
 
                     </div>
@@ -208,8 +208,8 @@
             const hideLoading = () => loadingIndicator.classList.remove('show');
 
             const updatePage = () => {
-                const view = document.querySelector('input[name="view"]:checked')?.value || '1';
-                const lang = document.querySelector('input[name="lang"]:checked')?.value || 'fr';
+                const view = document.querySelector('input[name="view"]:checked')?.value || '2';
+                const lang = document.querySelector('input[name="lang"]:checked')?.value || 'ar';
                 const filename = `${lang}${view}.html`;
                 
                 if (iframe.src.endsWith(filename)) return;
