@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أهم الأخبار - Treemap Carousel</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/9.4.1/swiper-bundle.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/9.4.1/swiper-bundle.min.js"></script>
+    
+    
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f4f4f4;
+              
+        }
+        
+        .swiper {
+            width: 100%;
+            height: 90vh;
+            margin-top: 10px;
+        }
+        
+        .swiper-slide {
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 10px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin: 10px;
+            width: calc(100% - 20px); /* Utilisez calc pour soustraire les marges */
+            margin-left: auto;
+            margin-right: auto;
+
+        }
+        
+        .treemap-container {
+           width: 100%;
+            height: 100%;
+            margin-bottom: 10px;
+            direction: rtl; /* Changez rtl en ltr */
+            position: relative;
+          z-index: 1;
+
+        }
+        
+        .community-title {
+            font-size: 16px;  
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+            position: relative;
+              z-index: 10;
+              padding: 10px;
+              background: rgba(255, 255, 255, 0.8); 
+              text-align: center;
+        }
+        
+        .node {
+            overflow: hidden;
+            border: 1px solid white;
+            position: absolute;
+            transition: all 0.3s;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .node:hover {
+            opacity: 0.9;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+        
+        .node-content {
+            padding: 8px;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .node-title {
+            font-size: 14px;  
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        
+        .node-source {
+            font-size: 12px;  
+            color: #666;
+        }
+        
+        .tooltip {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.3);
+            font-size: 16px; 
+            max-width: 90%;
+            width: 350px;
+            color: #333;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            direction: rtl;
+            text-align: right;
+        }
+        
+        .tooltip-title {
+            font-size: 16px;  
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .tooltip-source {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 10px;
+        }
+        
+        .tooltip-summary {
+            font-size: 15px;
+            line-height: 1.4;
+        }
+        
+        .swiper-pagination {
+            position: relative;
+            bottom: 0;
+            margin-top: 15px;
+        }
+        
+        .swiper-pagination-bullet {
+            width: 12px;
+            height: 12px;
+            background-color: #ccc;
+            opacity: 0.7;
+            transition: all 0.3s;
+        }
+        
+        .swiper-pagination-bullet-active {
+            background-color: #007aff;
+            opacity: 1;
+            width: 20px;
+            border-radius: 6px;
+        }
+        
+        .swiper-button-next, .swiper-button-prev {
+            color: #fff;
+            background-color: rgba(0, 0, 0, 0.4);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+        
+        .swiper-button-next:hover, .swiper-button-prev:hover {
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+        
+        .swiper-button-next:after, .swiper-button-prev:after {
+            font-size: 18px;
+        }
+        
+        header {
+            background-color: #333;
+            color: white;
+            text-align: center;
+        }
+        
+        .header-title {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .header-subtitle {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        @media screen and (max-width: 768px) {
+            .node-title {
+                font-size: 14px;  
+            }
+            .node-source {
+                font-size: 12px;  
+            }
+            .community-title {
+                font-size: 16px;  
+            }
+            .tooltip {
+                max-width: 90%;
+                padding: 12px;
+            }
+            .tooltip-title {
+                font-size: 16px;
+            }
+            .swiper-button-next, .swiper-button-prev {
+                width: 36px;
+                height: 36px;
+            }
+        }
+    </style>
+    
+    
+    
+</head>
+<body>
+    <header> 
+        <div class="header-title"> Les principales actualités des dernières 24 heures
+
+</div>    
+        <div class="header-subtitle"> Dernière mise à jour : 06/06/2025 - 15h54</div>  
+    </header>
+    
+    
+
+    <div class="swiper mySwiper">
+        <div class="swiper-wrapper" id="treemap-carousel"></div>
+        <div class="swiper-pagination"></div>
+        <div class="swiper-button-next"></div>
+        <div class="swiper-button-prev"></div>
+    </div>
+
+    <div id="tooltip" class="tooltip"></div>
+
+    <script>
+        const treemapData = [{'community_id': '0', 'articles': [{'id': '0', 'title': "Amir Al Mouminine, accomplira samedi la prière de l'Aïd Al-Adha à la mosquée Hassan II à Tétouan", 'source': 'fr.hespress.com', 'link': 'https://fr.hespress.com/427689-amir-al-mouminine-accomplira-samedi-la-priere-de-laid-al-adha-a-la-mosquee-hassan-ii-a-tetouan.html', 'summary': "Amir Al Mouminine, accomplira samedi la prière de l'Aïd Al-Adha à la mosquée Hassan II à Tétouan. Le Roi Mohammed VI, Amir Al-Mouminine, accomplira, samedi 10 Di Al Hijja 1446 H, correspondant au 7 juin 2025, la prière de l’Aïd Al-Adha béni à la mosquée Hassan II à Tétouan, indique un communiqué du Ministère de la Maison Royale, du Protocole et de la Chancellerie. Voici la traduction de ce communiqué : « Le . ", 'size': 5}, {'id': '256', 'title': "S.M. le Roi accomplira samedi la prière de l'Aïd Al-Adha à la mosquée Hassan II à Tétouan", 'source': 'lematin.ma', 'link': 'https://lematin.ma/activites-royales/sm-le-roi-accomplira-samedi-la-priere-de-laid-al-adha-a-tetouan/284196', 'summary': "S.M. le Roi accomplira samedi la prière de l'Aïd Al-Adha à la mosquée Hassan II à Tétouan. Voici la traduction de ce communiqué :Le Ministère de la Maison Royale, du Protocole et de la Chancellerie annonce que Sa Majesté le Roi Mohammed VI, Amir Al Mouminine, que D.", 'size': 5}, {'id': '265', 'title': "SM le Roi, Amir Al Mouminine, accomplira samedi la prière de l'Aïd Al-Adha à la mosquée Hassan II à Tétouan", 'source': 'www.lopinion.ma', 'link': 'https://www.lopinion.ma/SM-le-Roi-Amir-Al-Mouminine-accomplira-samedi-la-priere-de-l-Aid-Al-Adha-a-la-mosquee-Hassan-II-a-Tetouan_a68407.html', 'summary': "SM le Roi, Amir Al Mouminine, accomplira samedi la prière de l'Aïd Al-Adha à la mosquée Hassan II à Tétouan. Sa Majesté le Roi Mohammed VI, Amir Al-Mouminine, que Dieu L'assiste, accomplira, samedi 10 Di Al Hijja 1446 H, correspondant au 7 juin 2025, la prière de l’Aïd Al-Adha béni à la mosquée Hassan II à Tétouan, indique un communiqué du Ministère de la Maison Royale, du Protocole et de la Chancellerie.", 'size': 5}, {'id': '275', 'title': "Le roi, Amir Al Mouminine, accomplira samedi la prière de l'Aïd Al-Adha à la mosquée Hassan II à Tétouan", 'source': 'telquel.ma', 'link': 'https://telquel.ma/instant-t/2025/06/06/le-roi-amir-al-mouminine-accomplira-samedi-la-priere-de-laid-al-adha-a-la-mosquee-hassan-ii-a-tetouan_1936643/', 'summary': "Le roi, Amir Al Mouminine, accomplira samedi la prière de l'Aïd Al-Adha à la mosquée Hassan II à Tétouan. Le roi Mohammed VI, Amir Al-Mouminine, accomplira, samedi 10 Di Al Hijja 1446 H, correspondant au 7 juin 2025, la prière de l’Aïd Al-Adha béni à la mosquée Hassan II à Tétouan, indique un communiqué du Ministère de la Maison Royale, du Protocole et de la Chancellerie. Voici la traduction de ce communiqué : « Le.", 'size': 5}, {'id': '309', 'title': 'S.M. le Roi priera l’Aïd Al-Adha à la mosquée Hassan II de Tétouan', 'source': 'maroc-diplomatique.net', 'link': 'https://maroc-diplomatique.net/s-m-le-roi-priera-laid-al-adha-a-la-mosquee-hassan-ii-de-tetouan/', 'summary': 'S.M. le Roi priera l’Aïd Al-Adha à la mosquée Hassan II de Tétouan. Sa Majesté le Roi Mohammed VI, Amir Al-Mouminine, que Dieu L’assiste, accomplira, samedi 10 Di Al Hijja 1446 H, correspondant au 7 juin 2025, la prière de l’Aïd Al-Adha béni à la mosquée Hassan II à Tétouan, indique un communiqué du Ministère de la Maison Royale, du Protocole et de la Chancellerie. Voici la traduction .', 'size': 5}], 'main_title': "Amir Al Mouminine, accomplira samedi la prière de l'Aïd Al-Adha à la mosquée Hassan II à Tétouan"}, {'community_id': '1', 'articles': [{'id': '4', 'title': 'Hajj 2025 : les pèlerins entament le rituel de "Jamrat Al-Aqaba" à Mina', 'source': 'fr.hespress.com', 'link': 'https://fr.hespress.com/427666-hajj-2025-les-pelerins-entament-le-rituel-de-jamrat-al-aqaba-a-mina.html', 'summary': 'Hajj 2025 : les pèlerins entament le rituel de "Jamrat Al-Aqaba" à Mina. Les pèlerins ont commencé, dès l’aube de ce vendredi, à accomplir le rituel de la lapidation des stèles au niveau du site de Mina, par le lancement des sept cailloux de « Jamrat Al-Aqaba ». Les visiteurs des Lieux Saints de l’Islam ont accompli cette dernière étape majeure du Hajj en toute fluidité, sans encombrements ni bousculades, . ', 'size': 3}, {'id': '115', 'title': 'Arabie Saoudite: les pèlerins accomplissent le rituel de «\xa0Jamrat Al-Aqaba\xa0» à Mina', 'source': 'www.challenge.ma', 'link': 'https://www.challenge.ma/arabie-saoudite-les-pelerins-accomplissent-le-rituel-de-jamrat-al-aqaba-a-mina-304194/', 'summary': 'Arabie Saoudite: les pèlerins accomplissent le rituel de « Jamrat Al-Aqaba » à Mina. Les pèlerins ont commencé, dès l’aube de ce vendredi, à accomplir le rituel de la lapidation des stèles au niveau du site de Mina, par le lancement des sept cailloux de « Jamrat Al-Aqaba ». Les visiteurs des Lieux Saints de l’Islam ont accompli cette dernière étape majeure du Hajj en toute', 'size': 3}, {'id': '276', 'title': 'Arabie Saoudite: les pèlerins entament le rituel de "Jamrat Al-Aqaba" à Mina', 'source': 'telquel.ma', 'link': 'https://telquel.ma/instant-t/2025/06/06/arabie-saoudite-les-pelerins-entament-le-rituel-de-jamrat-al-aqaba-a-mina_1936636/', 'summary': 'Arabie Saoudite: les pèlerins entament le rituel de "Jamrat Al-Aqaba" à Mina. Les pèlerins ont commencé, dès l’aube de ce vendredi, à accomplir le rituel de la lapidation des stèles au niveau du site de Mina, par le lancement des sept cailloux de « Jamrat Al-Aqaba ». Les visiteurs des Lieux Saints de l’Islam ont accompli cette dernière étape majeure du Hajj en toute fluidité, sans encombrements ni bousculades,.', 'size': 3}], 'main_title': 'Hajj 2025 : les pèlerins entament le rituel de "Jamrat Al-Aqaba" à Mina'}, {'community_id': '2', 'articles': [{'id': '6', 'title': 'Sahara : le Ghana enterre la "RASD" et soutient la souveraineté du Maroc', 'source': 'fr.hespress.com', 'link': 'https://fr.hespress.com/427613-sahara-le-ghana-enterre-la-rasd-et-soutient-la-souverainete-du-maroc.html', 'summary': 'Sahara : le Ghana enterre la "RASD" et soutient la souveraineté du Maroc. Le Royaume du Maroc engrange un nouveau soutien de poids sur la scène africaine et internationale. Le Ghana a désormais rejoint la dynamique en faveur du plan d’autonomie marocain. Une nouvelle victoire diplomatique pour le Royaume dans sa stratégie de reconquête du narratif africain. Un tournant significatif dans le dossier du Sahara marocain s’est opéré . ', 'size': 2}, {'id': '67', 'title': "Sahara : Le Ghana soutient à son tour le plan d'autonomie présenté par le Maroc", 'source': 'www.lopinion.ma', 'link': 'https://www.lopinion.ma/Sahara-Le-Ghana-soutient-a-son-tour-le-plan-d-autonomie-presente-par-le-Maroc_a68390.html', 'summary': "Sahara : Le Ghana soutient à son tour le plan d'autonomie présenté par le Maroc. La République du Ghana considère le plan d’autonomie présenté par le Royaume du Maroc comme la seule base réaliste et durable pour une solution mutuellement acceptable à la question du Sahara.", 'size': 4}, {'id': '87', 'title': 'Sahara: Le Ghana considère le plan d’autonomie comme la seule base réaliste et durable pour une solution acceptable au différend', 'source': 'telquel.ma', 'link': 'https://telquel.ma/instant-t/2025/06/06/sahara-le-ghana-considere-le-plan-dautonomie-comme-la-seule-base-realiste-et-durable-pour-une-solution-acceptable-au-differend_1936617/', 'summary': 'Sahara: Le Ghana considère le plan d’autonomie comme la seule base réaliste et durable pour une solution acceptable au différend. La République du Ghana considère le plan d’autonomie présenté par le Royaume du Maroc comme la seule base réaliste et durable pour une solution mutuellement acceptable à la question du Sahara. Cette position a été exprimée dans le communiqué conjoint signé au terme de la réunion tenue, ce jeudi à Rabat, entre Nasser Bourita, ministre.', 'size': 4}, {'id': '163', 'title': 'Sahara : Le Ghana considère le plan d’autonomie marocain «\xa0la seule base réaliste\xa0» pour une solution mutuellement acceptable', 'source': 'www.lavieeco.com', 'link': 'https://www.lavieeco.com/pouvoirs/territoires/sahara-le-ghana-considere-le-plan-dautonomie-marocain-la-seule-base-realiste-pour-une-solution-mutuellement-acceptable/', 'summary': 'Sahara : Le Ghana considère le plan d’autonomie marocain « la seule base réaliste » pour une solution mutuellement acceptable. Cette position a été exprimée dans le Communiqué conjoint signé au terme de la réunion tenue, ce jeudi à Rabat, entre Nasser Bourita, ministre des Affaires étrangères et son homologue du Ghana Samuel Okudzeto Ablakwa.', 'size': 2}, {'id': '217', 'title': 'Sahara: le Ghana considère le plan d’autonomie du Maroc comme la seule base réaliste et durable pour une solution mutuellement acceptable', 'source': 'atlasinfo.fr', 'link': 'https://atlasinfo.fr/sahara-le-ghana-considere-le-plan-dautonomie-du-maroc-comme-la-seule-base-realiste-et-durable-pour-une-solution-mutuellement-acceptable.html', 'summary': 'Sahara: le Ghana considère le plan d’autonomie du Maroc comme la seule base réaliste et durable pour une solution mutuellement acceptable. La République du Ghana considère le plan d’autonomie présenté par le Royaume du Maroc comme la seule base réaliste et durable pour une solution mutuellement acceptable à la question du Sahara. L’article est apparu en premier sur .', 'size': 3}], 'main_title': "Sahara : Le Ghana soutient à son tour le plan d'autonomie présenté par le Maroc"}, {'community_id': '3', 'articles': [{'id': '14', 'title': 'La Commissaire divisionnaire marocaine, Leïla Zouine, élue vice-présidente du Groupe mondial d’Interpol sur la cybercriminalité', 'source': 'lematin.ma', 'link': 'https://lematin.ma/nation/cybercriminalite-le-maroc-a-elu-vice-president-du-gemc/284176', 'summary': 'La Commissaire divisionnaire marocaine, Leïla Zouine, élue vice-présidente du Groupe mondial d’Interpol sur la cybercriminalité. La représentante de la DGSN a été portée à cette haute fonction au sein du GEMC, lors de la première réunion annuelle de ce groupe qu’a abritée, les 04 et 05 juin courant, le Secré.', 'size': 2}, {'id': '63', 'title': "Interpol : la Marocaine  Leïla Zouine élue vice-présidente du Groupe d'experts mondial sur la cybercriminalité", 'source': 'www.lopinion.ma', 'link': 'https://www.lopinion.ma/Interpol-la-Marocaine-Leila-Zouine-elue-vice-presidente-du-Groupe-d-experts-mondial-sur-la-cybercriminalite_a68394.html', 'summary': "Interpol : la Marocaine Leïla Zouine élue vice-présidente du Groupe d'experts mondial sur la cybercriminalité. Le Royaume du Maroc a été élu, jeudi, au siège de l’Organisation internationale de police criminelle (Interpol) à Lyon, en France, en la personne du Commissaire divisionnaire, Leïla Zouine, Chef de service de lutte contre la criminalité liée aux nouvelles technologies au sein de la Direction générale de la sûreté nationale (DGSN), au poste de vice-présidente du Groupe d'experts mondial d'Interpol sur la cybercriminalité (GEMC).", 'size': 3}, {'id': '81', 'title': "France: le Maroc élu vice-président du Groupe d'experts mondial d'Interpol sur la cybercriminalité", 'source': 'telquel.ma', 'link': 'https://telquel.ma/instant-t/2025/06/06/france-le-maroc-elu-vice-president-du-groupe-dexperts-mondial-dinterpol-sur-la-cybercriminalite_1936607/', 'summary': "France: le Maroc élu vice-président du Groupe d'experts mondial d'Interpol sur la cybercriminalité. Le Royaume du Maroc a été élu, jeudi, au siège de l’Organisation internationale de police criminelle (Interpol) à Lyon, en France, en la personne du Commissaire divisionnaire, Leïla Zouine, Chef de service de lutte contre la criminalité liée aux nouvelles technologies au sein de la Direction générale de la sûreté nationale (DGSN), au poste de.", 'size': 3}, {'id': '157', 'title': 'Cybercriminalité: Le Maroc vice-président du Groupe d’experts mondial d’Interpol', 'source': 'www.lavieeco.com', 'link': 'https://www.lavieeco.com/pouvoirs/securite/cybercriminalite-le-maroc-vice-president-du-groupe-dexperts-mondial-dinterpol/', 'summary': "Cybercriminalité: Le Maroc vice-président du Groupe d’experts mondial d’Interpol. Le Commissaire divisionnaire, Leïla Zouine, Chef de service de lutte contre la criminalité liée aux nouvelles technologies au sein de la DGSN, a été élue au poste de vice-présidente du Groupe d'experts mondial d'Interpol sur la cybercriminalité.", 'size': 4}], 'main_title': 'Cybercriminalité: Le Maroc vice-président du Groupe d’experts mondial d’Interpol'}, {'community_id': '4', 'articles': [{'id': '15', 'title': "Festival CasaNola : Le Jazz de La Nouvelle-Orléans s'invite à Casablanca", 'source': 'lematin.ma', 'link': 'https://lematin.ma/culture/casanola-le-jazz-de-la-nouvelle-orleans-sinvite-a-casablanca/284175', 'summary': "Festival CasaNola : Le Jazz de La Nouvelle-Orléans s'invite à Casablanca. À travers cette initiative, CasaNola s’inscrit dans le cadre du programme Jazz International du New Orleans Jazz Museum, qui promeut le jazz comme langage universel et vecteur de d.", 'size': 2}, {'id': '307', 'title': 'CasaNola Jazz Festival : Le Jazz de La Nouvelle-Orléans s’invite à Casablanca', 'source': 'maroc-diplomatique.net', 'link': 'https://maroc-diplomatique.net/casanola-jazz-festival-le-jazz-de-la-nouvelle-orleans-sinvite-a-casablanca/', 'summary': 'CasaNola Jazz Festival : Le Jazz de La Nouvelle-Orléans s’invite à Casablanca. Du 12 au 14 juin 2025, la ville de Casablanca vibrera au rythme du jazz et des traditions populaires lors du Festival CasaNola, un événement unique célébrant la rencontre artistique entre La Nouvelle-Orléans et le Maroc. Organisé par l’association AVEMPACE, en partenariat avec le New Orleans Jazz Museum, ce festival se tiendra à l’Automobile Club du Maroc et .', 'size': 2}], 'main_title': "Festival CasaNola : Le Jazz de La Nouvelle-Orléans s'invite à Casablanca"}, {'community_id': '5', 'articles': [{'id': '18', 'title': 'Mondelez Maroc forme des jeunes de l’École de la 2ᵉ chance aux métiers de l’industrie', 'source': 'lematin.ma', 'link': 'https://lematin.ma/societe/mondelez-maroc-forme-des-jeunes-aux-metiers-de-lindustrie/284173', 'summary': 'Mondelez Maroc forme des jeunes de l’École de la 2ᵉ chance aux métiers de l’industrie. Cette initiative s’inscrit dans la 7ᵉ édition du programme Coaching for the Best, déployé pour 2024-2025, et illustre l’ancrage de Mondelez Maroc dans le tissu social local. Avec l.', 'size': 2}, {'id': '232', 'title': 'Mondelez Maroc accueille les bénéficiaires de l’école de la 2ᵉ chance nouvelle génération de Ben M’sik', 'source': 'lnt.ma', 'link': 'https://lnt.ma/mondelez-maroc-accueille-les-beneficiaires-de-lecole-de-la-2%e1%b5%89-chance-nouvelle-generation-de-ben-msik/', 'summary': 'Mondelez Maroc accueille les bénéficiaires de l’école de la 2ᵉ chance nouvelle génération de Ben M’sik. Dans le cadre de la 7ᵉ édition du programme « Coaching for the Best », Mondelez Maroc a ouvert les portes de son site de production à des bénéficiaires de l’école de la 2ᵉ chance nouvelle génération de Ben M’sik. L’initiative s’inscrit dans une démarche de soutien à l’insertion socio-professionnelle des jeunes et vise à renforcer leurs . ', 'size': 2}], 'main_title': 'Mondelez Maroc forme des jeunes de l’École de la 2ᵉ chance aux métiers de l’industrie'}, {'community_id': '6', 'articles': [{'id': '19', 'title': 'Mondial 2026 : le Marocain Jamal Sellami mène la Jordanie à sa première qualification', 'source': 'lematin.ma', 'link': 'https://lematin.ma/sports/mondial-2026-jamal-sellami-mene-la-jordanie-a-sa-premiere-qualification/284172', 'summary': "Mondial 2026 : le Marocain Jamal Sellami mène la Jordanie à sa première qualification. Grâce à ce succès, les Jordaniens ne peuvent plus être rejoints à la deuxième place du groupe B par l'Irak, troisième, qui s'est incliné (2-0) face à la Corée du Sud, premi.", 'size': 2}, {'id': '85', 'title': 'Mondial-2026: la Jordanie qualifiée pour son premier Mondial sous la houlette du Marocain Jamal Sellami', 'source': 'telquel.ma', 'link': 'https://telquel.ma/instant-t/2025/06/06/mondial-2026-la-jordanie-qualifiee-pour-son-premier-mondial-sous-la-houlette-du-marocain-jamal-sellami_1936610/', 'summary': 'Mondial-2026: la Jordanie qualifiée pour son premier Mondial sous la houlette du Marocain Jamal Sellami. La Jordanie, sous la houlette du cadre marocain Jamal Sellami, s’est qualifiée jeudi pour la première fois de son histoire à la Coupe du monde après sa victoire (3-0) à Oman lors de l’avant-dernière journée des qualifications de la zone asiatique. Grâce à ce succès, les Jordaniens ne peuvent plus être rejoints à la deuxième.', 'size': 3}, {'id': '288', 'title': 'Football : Jamal Sellami mène la Jordanie à sa première qualification au Mondial', 'source': 'www.yabiladi.com', 'link': 'https://www.yabiladi.com/articles/details/168407/football-jamal-sellami-mene-jordanie.html', 'summary': 'Football : Jamal Sellami mène la Jordanie à sa première qualification au Mondial. Lentraîneur marocain Jamal Sellami a mené léquipe nationale jordanienne à se qualifier pour la première fois de son histoire au Mondial de football, après une victoire hier contre Oman (3-0).', 'size': 2}], 'main_title': 'Mondial-2026: la Jordanie qualifiée pour son premier Mondial sous la houlette du Marocain Jamal Sellami'}, {'community_id': '7', 'articles': [{'id': '27', 'title': 'Orange Maroc s’allie à Ericsson pour déployer la 5G au Maroc', 'source': 'lematin.ma', 'link': 'https://lematin.ma/economie/orange-maroc-sallie-a-ericsson-pour-deployer-la-5g-au-maroc/284135', 'summary': 'Orange Maroc s’allie à Ericsson pour déployer la 5G au Maroc. Orange Maroc a annoncé la conclusion d’un accord stratégique avec le suédois Ericsson, visant à moderniser son réseau et à préparer le déploiement de la 5G au Maroc. Cette initiati.', 'size': 2}, {'id': '226', 'title': 'Orange Maroc s’allie à Ericsson pour accélérer la 5G', 'source': 'lnt.ma', 'link': 'https://lnt.ma/orange-maroc-sallie-a-ericsson-pour-accelerer-la-5g/', 'summary': 'Orange Maroc s’allie à Ericsson pour accélérer la 5G. Orange Maroc franchit une nouvelle étape majeure dans le renforcement de son infrastructure réseau en signant un accord stratégique avec Ericsson pour la modernisation et l’extension de son réseau. Cette alliance inédite s’inscrit pleinement dans la vision d’Orange Maroc visant à offrir une connectivité ultra-performante, en préparation du lancement de la 5G et en ligne . ', 'size': 2}], 'main_title': 'Orange Maroc s’allie à Ericsson pour déployer la 5G au Maroc'}, {'community_id': '8', 'articles': [{'id': '42', 'title': 'Vague de chaleur (38 à 43°C), samedi et dimanche dans plusieurs régions du Maroc', 'source': 'lematin.ma', 'link': 'https://lematin.ma/regions/vague-de-chaleur-samedi-et-dimanche-dans-plusieurs-regions-du-maroc/284042', 'summary': 'Vague de chaleur (38 à 43°C), samedi et dimanche dans plusieurs régions du Maroc. Ces températures sont attendues dans les provinces de Ouezzane, Guercif, Taza, Taounate, Khouribga, Fquih Ben Salah, Settat et El Kelâa des Sraghna, ajoute la même source.', 'size': 3}, {'id': '98', 'title': "Jusqu'à 43°C ce week-end dans plusieurs régions du Maroc", 'source': 'telquel.ma', 'link': 'https://telquel.ma/instant-t/2025/06/05/jusqua-43c-ce-week-end-dans-plusieurs-regions-du-maroc_1936526/', 'summary': "Jusqu'à 43°C ce week-end dans plusieurs régions du Maroc. Un temps chaud est prévu samedi et dimanche dans plusieurs provinces du Royaume, avec des températures oscillant entre 38 et 43°C, a annoncé la Direction générale de la météorologie (DGM) dans un bulletin d’alerte de niveau de vigilance « orange ». Ces températures sont attendues dans les provinces de Ouezzane, Guercif, Taza, Taounate, Khouribga, Fquih Ben Salah,.", 'size': 4}, {'id': '126', 'title': 'Vague de chaleur durant le week-end de l’Aid Al-Adha', 'source': 'www.challenge.ma', 'link': 'https://www.challenge.ma/vague-de-chaleur-durant-le-week-end-de-laid-al-adha-304145/', 'summary': 'Vague de chaleur durant le week-end de l’Aid Al-Adha. Un temps chaud est prévu samedi et dimanche prochains, coïncidant avec la célébration de l’Aid Al-Adha, dans plusieurs provinces, avec des températures oscillant entre 38 et 43°C, a annoncé la Direction générale de la météorologie (DGM) dans un bulletin d’alerte de niveau de vigilance « orange ». Ces températures sont attendues dans', 'size': 3}, {'id': '222', 'title': 'Une nouvelle vague caniculaire attendue pour ce week-end dans plusieurs régions', 'source': 'www.lereporter.ma', 'link': 'https://www.lereporter.ma/une-nouvelle-vague-caniculaire-attendue-pour-ce-week-end-dans-plusieurs-regions/', 'summary': 'Une nouvelle vague caniculaire attendue pour ce week-end dans plusieurs régions. Un temps chaud est prévu samedi et dimanche prochains dans plusieurs provinces du Royaume, avec des températures oscillant entre 38 et 43°C, a annoncé la Direction générale de la météorologie (DGM) dans un bulletin d’alerte de niveau de vigilance “orange”. Ces températures sont attendues dans les provinces de Ouezzane, Guercif, Taza, Taounate, Khouribga, Fquih Ben ', 'size': 4}], 'main_title': "Jusqu'à 43°C ce week-end dans plusieurs régions du Maroc"}, {'community_id': '9', 'articles': [{'id': '50', 'title': 'L’ACAPS certifiée ISO 9001 pour la gestion de ses agréments', 'source': 'lematin.ma', 'link': 'https://lematin.ma/economie/lacaps-obtient-la-certification-iso-9001-pour-la-gestion-des-agrements/284094', 'summary': "L’ACAPS certifiée ISO 9001 pour la gestion de ses agréments. Cette certification couvre les activités liées au cycle de vie des agréments à l'ACAPS ou autorisations délivrés aux distributeurs de produits d’assurance. Elle encadre l’ensem.", 'size': 2}, {'id': '196', 'title': 'Gestion des agréments : l’ACAPS obtient la certification ISO 9001/2015', 'source': 'leseco.ma', 'link': 'https://leseco.ma/business/gestion-des-agrements-lacaps-obtient-la-certification-iso-9001-2015.html', 'summary': 'Gestion des agréments : l’ACAPS obtient la certification ISO 9001/2015. L’Autorité de contrôle des assurances et de la prévoyance sociale (ACAPS) a obtenu la certification ISO 9001/2015 pour son système de management de la qualité, couvrant l’ensemble des activités liées au cycle de vie des agréments et autorisations des distributeurs de produits d’assurance. ', 'size': 2}], 'main_title': 'L’ACAPS certifiée ISO 9001 pour la gestion de ses agréments'}, {'community_id': '10', 'articles': [{'id': '52', 'title': 'Le chinois Shandong Yongsheng va implanter une usine de pneus au Maroc', 'source': 'lematin.ma', 'link': 'https://lematin.ma/economie/le-chinois-shandong-yongsheng-va-implanter-une-usine-de-pneus-au-maroc/283919', 'summary': 'Le chinois Shandong Yongsheng va implanter une usine de pneus au Maroc. Un nouveau projet industriel chinois vient renforcer l’attractivité du Maroc dans le secteur de l’automobile. Le groupe Shandong Yongsheng Rubber, spécialisé dans la fabrication de.', 'size': 2}, {'id': '124', 'title': 'Qui est Shandong Yongsheng, le Chinois qui veut s’installer au Maroc ?', 'source': 'www.challenge.ma', 'link': 'https://www.challenge.ma/qui-est-shandong-yongsheng-le-chinois-qui-veut-sinstaller-au-maroc-304162/', 'summary': 'Qui est Shandong Yongsheng, le Chinois qui veut s’installer au Maroc ?. Le secteur du pneumatique est sous les projecteurs avec l’annonce d’un nouvel entrant. Zoom sur l’opérateur chinois Shandong dans ce secteur, qui cherche à s’étendre au-delà de son marché local. Le groupe chinois Shandong Yongsheng Rubber prévoit de construire une usine de pneus automobiles au Maroc, a rapporté le site', 'size': 2}], 'main_title': 'Le chinois Shandong Yongsheng va implanter une usine de pneus au Maroc'}, {'community_id': '11', 'articles': [{'id': '53', 'title': "L'industrie reste bien orientée au deuxième trimestre, sauf pour l’extraction (HCP)", 'source': 'lematin.ma', 'link': 'https://lematin.ma/economie/lindustrie-reste-bien-orientee-au-deuxieme-trimestre-2025/283956', 'summary': "L'industrie reste bien orientée au deuxième trimestre, sauf pour l’extraction (HCP). Dans l’industrie manufacturière, les anticipations pour le deuxième trimestre 2025 sont résolument positives. Les industriels s’attendent à une hausse de la production, notamment d.", 'size': 2}, {'id': '311', 'title': 'Conjoncture : les industriels anticipent une hausse de la production, sauf dans l’extraction', 'source': 'leseco.ma', 'link': 'https://leseco.ma/business/conjoncture-les-industriels-anticipent-une-hausse-de-la-production-sauf-dans-lextraction.html', 'summary': 'Conjoncture : les industriels anticipent une hausse de la production, sauf dans l’extraction. En dehors de l’industrie extractive, les anticipations de la production par secteur, au titre du 2e trimestre 2025, tablent sur une augmentation. ', 'size': 2}], 'main_title': "L'industrie reste bien orientée au deuxième trimestre, sauf pour l’extraction (HCP)"}, {'community_id': '12', 'articles': [{'id': '79', 'title': 'Espagne : les Marocains toujours en tête des naturalisations en 2024', 'source': 'telquel.ma', 'link': 'https://telquel.ma/instant-t/2025/06/06/espagne-les-marocains-toujours-en-tete-des-naturalisations-en-2024_1936620/', 'summary': 'Espagne : les Marocains toujours en tête des naturalisations en 2024. En 2024, les Marocains ont constitué la première nationalité à obtenir la citoyenneté espagnole, avec 42.910 naturalisations enregistrées, selon les dernières données de l’Institut national de la statistique espagnol (INE). L’Espagne a accordé sa nationalité à 252.476 personnes au total, marquant une hausse de 5,1 % par rapport à l’année précédente. Il s’agit du chiffre.', 'size': 2}, {'id': '245', 'title': 'Les Marocains, première nationalité naturalisée en Espagne en 2024', 'source': 'fr.hespress.com', 'link': 'https://fr.hespress.com/427563-les-marocains-premiere-nationalite-naturalisee-en-espagne-en-2024.html', 'summary': 'Les Marocains, première nationalité naturalisée en Espagne en 2024. Les Marocains sont les principaux citoyens à être naturalisés en Espagne, suivis des Vénézuéliens et Colombiens. Ce trio de tête a enregistré une augmentation sur l’année 2024, selon les chiffres l’Institut national de la statistique (INE). Publiés jeudi, les chiffres sur les naturalisations d’étrangers indiquent une augmentation de 5,1% par rapport à l’année précédente et . ', 'size': 2}], 'main_title': 'Espagne : les Marocains toujours en tête des naturalisations en 2024'}, {'community_id': '13', 'articles': [{'id': '88', 'title': 'Le HCP établit le taux de croissance en 2024 à 3,8%', 'source': 'telquel.ma', 'link': 'https://telquel.ma/instant-t/2025/06/06/le-hcp-etablit-le-taux-de-croissance-en-2024-a-38_1936596/', 'summary': 'Le HCP établit le taux de croissance en 2024 à 3,8%. L’arrêté des comptes nationaux de l’année 2024 fait ressortir une croissance de l’économie nationale de 3,8%, au lieu de 3,7% en 2023, selon le Haut-Commissariat au Plan (HCP). « Cette croissance, portée par la demande intérieure, a été réalisée dans un contexte marqué par une forte inflation et un creusement du besoin de financement de l’économie.', 'size': 5}, {'id': '117', 'title': 'Maroc : une croissance de 3,8% en 2024', 'source': 'www.challenge.ma', 'link': 'https://www.challenge.ma/maroc-une-croissance-de-38-en-2024-304185/', 'summary': 'Maroc : une croissance de 3,8% en 2024. L’arrêté des comptes nationaux de l’année 2024 fait ressortir une croissance de l’économie nationale de 3,8%, au lieu de 3,7% en 2023, selon le Haut-Commissariat au Plan (HCP). Cette croissance, portée par la demande intérieure, a été réalisée dans un contexte marqué par une forte inflation et un creusement du', 'size': 5}, {'id': '142', 'title': 'HCP: une croissance de 3,8% en 2024', 'source': 'aujourdhui.ma', 'link': 'https://aujourdhui.ma/actualite/hcp-une-croissance-de-38-en-2024', 'summary': 'HCP: une croissance de 3,8% en 2024. L’arrêté des comptes nationaux de l’année 2024 fait ressortir une croissance de l’économie nationale de 3,8%, au lieu de 3,7% en 2023, selon le Haut-Commissariat au Plan (HCP). Cette croissance, portée par la demande intérieure, a été réalisée dans un contexte marqué par une forte inflation et un creusement du besoin de financement de l’économie .', 'size': 5}, {'id': '161', 'title': 'HCP : La croissance économique est de 3,8% en 2024', 'source': 'www.lavieeco.com', 'link': 'https://www.lavieeco.com/au-royaume/hcp-la-croissance-economique-est-de-38-en-2024/', 'summary': 'HCP : La croissance économique est de 3,8% en 2024. L’économie du pays a enregistré une croissance du PIB de 3,8% en 2024, au lieu de 3,7% en 2023, selon le Haut-Commissariat au Plan (HCP).', 'size': 5}, {'id': '249', 'title': "HCP : une croissance de l'économie nationale à 3,8% en 2024", 'source': 'fr.hespress.com', 'link': 'https://fr.hespress.com/427649-hcp-une-croissance-de-leconomie-nationale-a-38-en-2024.html', 'summary': "HCP : une croissance de l'économie nationale à 3,8% en 2024. Le Haut-Commissariat au Plan (HCP), a fait savoir que l’arrêté des comptes nationaux de l’année 2024 fait ressortir une croissance de l’économie nationale de 3,8%, au lieu de 3,7% en 2023. Dans une note d’information relative aux comptes nationaux provisoires de l’année 2024, le HCP souligne que cette croissance, portée par la demande intérieure, a . ", 'size': 5}], 'main_title': 'Le HCP établit le taux de croissance en 2024 à 3,8%'}, {'community_id': '14', 'articles': [{'id': '91', 'title': "Marhaba 2025 : 520 dessertes hebdomadaires pour renforcer le transport maritime entre le Maroc et le sud de l'Europe", 'source': 'telquel.ma', 'link': 'https://telquel.ma/instant-t/2025/06/05/marhaba-2025-520-dessertes-hebdomadaires-pour-renforcer-le-transport-maritime-entre-le-maroc-et-le-sud-de-leurope_1936565/', 'summary': "Marhaba 2025 : 520 dessertes hebdomadaires pour renforcer le transport maritime entre le Maroc et le sud de l'Europe. L’offre spéciale relative au transport maritime de voyageurs entre le Maroc et le sud de l’Europe dans le cadre de l’opération Marhaba 2025sera renforcée par 520 dessertes hebdomadaires, en vue de répondre aux flux attendus durant la période estivale, a indiqué jeudi le ministre délégué chargé des Relations avec le Parlement, porte-parole du gouvernement, Mustapha.", 'size': 4}, {'id': '220', 'title': 'Marhaba 2025 | Renforcement du transport maritime entre le Maroc et le sud de l’Europe', 'source': 'www.lereporter.ma', 'link': 'https://www.lereporter.ma/marhaba-2025-renforcement-du-transport-maritime-entre-le-maroc-et-le-sud-de-leurope/', 'summary': 'Marhaba 2025 | Renforcement du transport maritime entre le Maroc et le sud de l’Europe. L’offre spéciale relative au transport maritime de voyageurs entre le Maroc et le sud de l’Europe dans le cadre de l’opération “Marhaba 2025” sera renforcée par 520 dessertes hebdomadaires, en vue de répondre aux flux attendus durant la période estivale, a indiqué jeudi le ministre délégué chargé des Relations avec le Parlement, porte-parole du gouvernement, ', 'size': 4}, {'id': '235', 'title': 'Marhaba 2025 : 520 traversées par semaine pour les MRE', 'source': 'lnt.ma', 'link': 'https://lnt.ma/marhaba-2025-520-traversees-par-semaine-pour-les-mre/', 'summary': 'Marhaba 2025 : 520 traversées par semaine pour les MRE. L’offre spéciale relative au transport maritime de voyageurs entre le Maroc et le sud de l’Europe dans le cadre de l’opération « Marhaba 2025 » sera renforcée par 520 dessertes hebdomadaires, en vue de répondre aux flux attendus durant la période estivale, a indiqué jeudi le ministre délégué chargé des Relations avec le Parlement, porte-parole du gouvernement, . ', 'size': 4}, {'id': '289', 'title': 'Marhaba 2025 : Renforcement de l’offre de transport maritime entre le Maroc et le sud de l’Europe', 'source': 'aujourdhui.ma', 'link': 'https://aujourdhui.ma/actualite/marhaba-2025-renforcement-de-loffre-de-transport-maritime-entre-le-maroc-et-le-sud-de-leurope', 'summary': 'Marhaba 2025 : Renforcement de l’offre de transport maritime entre le Maroc et le sud de l’Europe. L’offre de transport maritime de passagers entre le Maroc et le sud de l’Europe a été considérablement renforcée pour répondre aux flux attendus des Marocains résidant à l’étranger (MRE) souhaitant visiter leur patrie durant la période estivale, dans le cadre de l’opération Marhaba 2025, organisée sous le Haut Patronage de Sa Majesté le Roi Mohammed .', 'size': 4}], 'main_title': "Marhaba 2025 : 520 dessertes hebdomadaires pour renforcer le transport maritime entre le Maroc et le sud de l'Europe"}, {'community_id': '15', 'articles': [{'id': '92', 'title': 'Tourisme : les hôtels classés enregistrent plus de 4,2 millions de nuitées à fin février', 'source': 'telquel.ma', 'link': 'https://telquel.ma/instant-t/2025/06/05/tourisme-les-hotels-classes-enregistrent-plus-de-42-millions-de-nuitees-a-fin-fevrier_1936560/', 'summary': 'Tourisme : les hôtels classés enregistrent plus de 4,2 millions de nuitées à fin février. Le volume des nuitées réalisées dans les établissements d’hébergement touristique classés (EHTC) a atteint plus de 4,2 millions de nuitées à fin février 2025, en hausse de 16% par rapport à la même période un an auparavant, selon l’Observatoire du Tourisme. Ces nuitées se répartissent sur le tourisme national (+6%) et le tourisme international (+20%),.', 'size': 2}, {'id': '121', 'title': 'Les chiffres des nuitées confirment l’embellie du tourisme au Maroc', 'source': 'www.challenge.ma', 'link': 'https://www.challenge.ma/les-chiffres-des-nuitees-confirment-lembellie-du-tourisme-au-maroc-304167/', 'summary': 'Les chiffres des nuitées confirment l’embellie du tourisme au Maroc. Les nuitées dans les établissements d’hébergement touristique classés (EHTC) se sont chiffrées à plus de 4,2 millions de nuitées à fin février 2025, en hausse de 16% par rapport à la même période un an auparavant, rapporte l’Observatoire du Tourisme. Les nuitées se répartissent sur le tourisme national (+6%) et', 'size': 2}], 'main_title': 'Tourisme : les hôtels classés enregistrent plus de 4,2 millions de nuitées à fin février'}, {'community_id': '16', 'articles': [{'id': '93', 'title': 'Entreprises : le conseil de gouvernement adopte un projet de décret sur les missions et honoraires du syndic', 'source': 'telquel.ma', 'link': 'https://telquel.ma/instant-t/2025/06/05/entreprises-le-conseil-de-gouvernement-adopte-un-projet-de-decret-sur-les-missions-et-honoraires-du-syndic_1936549/', 'summary': 'Entreprises : le conseil de gouvernement adopte un projet de décret sur les missions et honoraires du syndic. Le Conseil de gouvernement a approuvé, jeudi, le projet de décret n°2.23.716 fixant les aptitudes nécessaires à l’exercice des missions du syndic et les honoraires qu’il perçoit dans le cadre des procédures relatives aux difficultés des entreprises. Ce texte, présenté par le ministre de la Justice, Abdellatif Ouahbi, prend en compte les observations formulées à.', 'size': 2}, {'id': '122', 'title': 'Un projet de décret sur les missions et les honoraires du syndic adopté', 'source': 'www.challenge.ma', 'link': 'https://www.challenge.ma/un-projet-de-decret-sur-les-missions-et-les-honoraires-du-syndic-adopte-304157/', 'summary': 'Un projet de décret sur les missions et les honoraires du syndic adopté. Le Conseil de gouvernement a approuvé, jeudi, le projet de décret n°2.23.716 fixant les aptitudes nécessaires à l’exercice des missions du syndic et les honoraires qu’il perçoit dans le cadre des procédures relatives aux difficultés des entreprises. Ce texte, présenté par le ministre de la Justice, Abdellatif Ouahbi, prend en', 'size': 2}], 'main_title': 'Entreprises : le conseil de gouvernement adopte un projet de décret sur les missions et honoraires du syndic'}, {'community_id': '17', 'articles': [{'id': '99', 'title': "L'Union africaine “préoccupée” par la fermeture du territoire américain aux ressortissants de plusieurs pays", 'source': 'telquel.ma', 'link': 'https://telquel.ma/instant-t/2025/06/05/lunion-africaine-preoccupee-par-la-fermeture-du-territoire-americain-aux-ressortissants-de-plusieurs-pays_1936521/', 'summary': "L'Union africaine “préoccupée” par la fermeture du territoire américain aux ressortissants de plusieurs pays. L’Union africaine (UA) s’est dite jeudi “préoccupée” par le “possible impact négatif” de l’interdiction aux ressortissants de 12 pays, notamment africains, d’entrer aux Etats-Unis à partir de lundi. La décision annoncée par le président américain Donald Trump s’applique à l’Afghanistan, la Birmanie, le Tchad, la République du Congo (Congo-Brazzaville), la Guinée équatoriale, l’Erythrée, Haïti, l’Iran,.", 'size': 2}, {'id': '237', 'title': 'Trump interdit l’entrée aux États-Unis aux citoyens de 12 pays', 'source': 'lnt.ma', 'link': 'https://lnt.ma/trump-interdit-lentree-aux-etats-unis-aux-citoyens-de-12-pays/', 'summary': 'Trump interdit l’entrée aux États-Unis aux citoyens de 12 pays. Le président américain, Donald Trump, a signé mercredi soir une proclamation interdisant l’entrée aux Etats-Unis aux citoyens de 12 pays. « J’ai décidé de restreindre et de limiter totalement l’entrée des ressortissants des 12 pays suivants : Afghanistan, Birmanie, Tchad, République du Congo, Guinée équatoriale, Érythrée, Haïti, Iran, Libye, Somalie, Soudan et Yémen », a indiqué le . ', 'size': 2}], 'main_title': "L'Union africaine “préoccupée” par la fermeture du territoire américain aux ressortissants de plusieurs pays"}, {'community_id': '22', 'articles': [{'id': '100', 'title': "Éducation : comment le programme “Classes connectées” compte atteindre 30.000 élèves d'ici 2026", 'source': 'telquel.ma', 'link': 'https://telquel.ma/2025/06/05/education-comment-le-programme-classes-connectees-compte-atteindre-30-000-eleves-dici-2026_1936503', 'summary': "Éducation : comment le programme “Classes connectées” compte atteindre 30.000 élèves d'ici 2026. Le 4 juin, l’école Ouled Abdoun, située dans la province de Fqih Bensalah, a accueilli la cérémonie de lancement officiel de la deuxième phase du programme “Classes connectées Dir iddik”. Ce projet, fruit d’un partenariat entre le ministère de l’Éducation nationale, la Fondation Al Mada, l’opérateur télécom inwi, le groupe Managem et Nareva holding, ambitionne.", 'size': 2}, {'id': '129', 'title': 'Dir Iddik : 100 écoles rurales bientôt connectées', 'source': 'www.challenge.ma', 'link': 'https://www.challenge.ma/dir-iddik-100-ecoles-rurales-bientot-connectees-304042/', 'summary': 'Dir Iddik : 100 écoles rurales bientôt connectées. Le Ministère de l’Éducation Nationale, du Préscolaire et des Sports et la Fondation Al Mada ont signé, ce mercredi, une convention de partenariat pour le lancement du deuxième lot du projet « Classes Connectées Dir iddik ». Cette initiative vise à renforcer l’intégration du numérique dans l’enseignement primaire, en particulier', 'size': 3}, {'id': '143', 'title': 'Accès aux technologies dans les écoles: L’Education nationale et la Fondation  Al Mada engagés en faveur du rural', 'source': 'aujourdhui.ma', 'link': 'https://aujourdhui.ma/societe/acces-aux-technologies-dans-les-ecoles-leducation-nationale-et-la-fondation-al-mada-engages-en-faveur-du-rural', 'summary': 'Accès aux technologies dans les écoles: L’Education nationale et la Fondation Al Mada engagés en faveur du rural. La Fondation Al Mada et le ministère de l’éducation nationale, du préscolaire et des sports comptent toucher plus de 30.000 élèves d’ici 2026, en équipant plus de 100 écoles primaires rurales à travers les 12 régions du Maroc. Coding : Le second lot du projet «Classes Connectées Dir iddik» vient d’être lancé. Pour officialiser la .', 'size': 2}, {'id': '229', 'title': 'La Fondation Al Mada à Fqih Bensaleh pour le 2ème lot du projet ‘‘Classes Connectées Dir Iddik’’', 'source': 'lnt.ma', 'link': 'https://lnt.ma/la-fondation-al-mada-a-fqih-bensaleh-pour-le-2eme-lot-du-projet-classes-connectees-dir-iddik/', 'summary': 'La Fondation Al Mada à Fqih Bensaleh pour le 2ème lot du projet ‘‘Classes Connectées Dir Iddik’’. Le ministre de l’Éducation Nationale Mohammed Berrada et le Président de la Fondation Al Mada, Hassan Ouriagli, ont signé, le mercredi 04 juin dernier à Fqih Bensalah, une convention de partenariat pour étendre l’accès aux technologies numériques dans les écoles du milieu rural. Cet accord vise à renforcer l’engagement commun dans le cadre du projet . ', 'size': 3}], 'main_title': 'Dir Iddik : 100 écoles rurales bientôt connectées'}, {'community_id': '19', 'articles': [{'id': '110', 'title': 'Aïd Al-Adha : le 9 juin, jour férié dans les banques', 'source': 'telquel.ma', 'link': 'https://telquel.ma/instant-t/2025/06/05/aid-al-adha-le-9-juin-jour-ferie-dans-les-banques_1936446/', 'summary': 'Aïd Al-Adha : le 9 juin, jour férié dans les banques. Le Groupement professionnel des banques du Maroc (GPBM) a annoncé qu’à l’occasion de l’Aïd Al-Adha, le lundi 9 juin 2025 sera exceptionnellement jour férié dans les banques. Dans ce cadre, les banques prendront les dispositions nécessaires, sur l’ensemble du territoire national, pour assurer l’approvisionnement en quantités suffisantes en billets de banque, permettant l’alimentation continue des.', 'size': 2}, {'id': '223', 'title': 'Aïd Al-Adha | Le lundi 9 juin, jour férié exceptionnel pour les banques', 'source': 'www.lereporter.ma', 'link': 'https://www.lereporter.ma/aid-al-adha-le-lundi-9-juin-jour-ferie-exceptionnel-pour-les-banques/', 'summary': 'Aïd Al-Adha | Le lundi 9 juin, jour férié exceptionnel pour les banques. Le Groupement professionnel des banques du Maroc (GPBM) a annoncé qu’à l’occasion de l’Aïd Al-Adha, le lundi 09 juin 2025 sera exceptionnellement jour férié dans les banques. Dans ce cadre, les banques prendront les dispositions nécessaires, sur l’ensemble du territoire national, pour assurer l’approvisionnement en quantités suffisantes en billets de banque, permettant l’alimentation continue des ', 'size': 2}], 'main_title': 'Aïd Al-Adha : le 9 juin, jour férié dans les banques'}, {'community_id': '20', 'articles': [{'id': '120', 'title': 'Bourse de Casablanca\xa0: les revenus des sociétés cotées progressent de 7,7% à fin mars', 'source': 'www.challenge.ma', 'link': 'https://www.challenge.ma/bourse-de-casablanca-les-revenus-des-societes-cotees-progressent-de-77-a-fin-mars-304172/', 'summary': 'Bourse de Casablanca : les revenus des sociétés cotées progressent de 7,7% à fin mars. Les revenus agrégés des sociétés cotées à la Bourse de Casablanca ont atteint 82,9 milliards de dirhams (MMDH) au titre du premier trimestre 2025, en hausse de 7,7% contre 4% par rapport à la même période un an auparavant, selon Attijari Global Research (AGR). « À la lecture des différents communiqués', 'size': 2}, {'id': '231', 'title': 'Bourse de Casablanca : Une dynamique soutenue de la demande intérieure au T1', 'source': 'lnt.ma', 'link': 'https://lnt.ma/bourse-de-casablanca-une-dynamique-soutenue-de-la-demande-interieure-au-t1/', 'summary': 'Bourse de Casablanca : Une dynamique soutenue de la demande intérieure au T1. Les sociétés cotées à la Bourse de Casablanca ont enregistré une progression globale de leurs revenus au premier trimestre 2025, dans un contexte marqué par la consolidation de la demande intérieure et des performances sectorielles globalement favorables. Selon le dernier rapport d’Attijari Global Research, les revenus agrégés du marché actions ont augmenté de 7,7 % . ', 'size': 2}], 'main_title': 'Bourse de Casablanca\xa0: les revenus des sociétés cotées progressent de 7,7% à fin mars'}, {'community_id': '21', 'articles': [{'id': '125', 'title': 'Voici les propositions de nomination approuvées en Conseil de gouvernement', 'source': 'www.challenge.ma', 'link': 'https://www.challenge.ma/voici-les-propositions-de-nomination-approuvees-en-conseil-de-gouvernement-304149/', 'summary': 'Voici les propositions de nomination approuvées en Conseil de gouvernement. Le Conseil de gouvernement a approuvé, jeudi à Rabat, des propositions de nomination à des fonctions supérieures, conformément aux dispositions de l’article 92 de la Constitution. Ainsi, au niveau du ministère de l’Industrie et du Commerce, Youssef Lakbida a été nommé Directeur des industries agro-alimentaires, tandis qu’au niveau du ministère', 'size': 2}, {'id': '170', 'title': 'Conseil de gouvernement : Cinq nouvelles nominations à des fonctions supérieures', 'source': 'www.lavieeco.com', 'link': 'https://www.lavieeco.com/pouvoirs/conseil-de-gouvernement-cinq-nouvelles-nominations-a-des-fonctions-superieures/', 'summary': "Conseil de gouvernement : Cinq nouvelles nominations à des fonctions supérieures. Le Conseil de gouvernement a approuvé, jeudi à Rabat, des propositions de nomination à des fonctions supérieures, conformément aux dispositions de l'article 92 de la Constitution.", 'size': 2}], 'main_title': 'Voici les propositions de nomination approuvées en Conseil de gouvernement'}, {'community_id': '23', 'articles': [{'id': '137', 'title': 'Aïd el-Adha : La NARSA appelle à la vigilance sur les routes', 'source': 'www.yabiladi.com', 'link': 'https://www.yabiladi.com/articles/details/168377/el-adha-narsa-appelle-vigilance-routes.html', 'summary': 'Aïd el-Adha : La NARSA appelle à la vigilance sur les routes. L’Agence nationale de la sécurité routière (NARSA) a appelé, jeudi, les usagers de la route à redoubler de vigilance et de prudence, et à prendre les précautions de sécurité nécessaires en prévision de la célébration, samedi, de l’Aïd el-Adha et suite à la décision de décréter le lundi 9 juin jour férié pour les administrations de l’État et les collectivités territoriales.', 'size': 2}, {'id': '224', 'title': 'Aïd El Adha : la NARSA appelle à la prudence sur les routes', 'source': 'lnt.ma', 'link': 'https://lnt.ma/aid-el-adha-la-narsa-appelle-a-la-prudence-sur-les-routes/', 'summary': 'Aïd El Adha : la NARSA appelle à la prudence sur les routes. L’Agence nationale de la sécurité routière (NARSA) a appelé, jeudi, les usagers de la route à redoubler de vigilance et de prudence, et à prendre les précautions de sécurité nécessaires en prévision de la célébration, samedi, de l’Aïd El Adha et suite à la décision de décréter le lundi 09 juin jour férié pour les . ', 'size': 2}], 'main_title': 'Aïd el-Adha : La NARSA appelle à la vigilance sur les routes'}, {'community_id': '24', 'articles': [{'id': '140', 'title': 'Classement mondial Round University Ranking : L’Université Euromed de Fès classée 1ère au Maroc et 2ème en Afrique', 'source': 'aujourdhui.ma', 'link': 'https://aujourdhui.ma/societe/classement-mondial-round-university-ranking-luniversite-euromed-de-fes-classee-1ere-au-maroc-et-2eme-en-afrique', 'summary': 'Classement mondial Round University Ranking : L’Université Euromed de Fès classée 1ère au Maroc et 2ème en Afrique. L’Université Euromed de Fès (UEMF) intègre le cercle très fermé des 360 meilleures universités selon le prestigieux classement international Round University Ranking. L’Université Euromed de Fès (UEMF) confirme une fois de plus son excellence académique et son rayonnement international. Elle vient d’être classée première au Maroc, deuxième en Afrique, selon le prestigieux classement international Round .', 'size': 2}, {'id': '173', 'title': 'Round University Ranking 2025 : l’Université Euromed de Fès première au Maroc et deuxième en Afrique', 'source': 'www.lavieeco.com', 'link': 'https://www.lavieeco.com/comese/round-university-ranking-2025-luniversite-euromed-de-fes-premiere-au-maroc-et-deuxieme-en-afrique/', 'summary': 'Round University Ranking 2025 : l’Université Euromed de Fès première au Maroc et deuxième en Afrique. L’Université Euromed de Fès (UEMF) vient d’être classée première au Maroc, deuxième en Afrique du Sud et 353e à l’échelle mondiale.', 'size': 2}], 'main_title': 'Classement mondial Round University Ranking : L’Université Euromed de Fès classée 1ère au Maroc et 2ème en Afrique'}, {'community_id': '25', 'articles': [{'id': '146', 'title': 'Fonds alternatifs : Une feuille de route tracée pour structurer la fonction de dépositaire', 'source': 'aujourdhui.ma', 'link': 'https://aujourdhui.ma/economie/fonds-alternatifs-une-feuille-de-route-tracee-pour-structurer-la-fonction-de-depositaire', 'summary': 'Fonds alternatifs : Une feuille de route tracée pour structurer la fonction de dépositaire. Selon Khalid Safir, directeur général de la CDG, le dépositaire est un acteur clé de l’écosystème des fonds alternatifs, garant de la bonne gouvernance des fonds, de la sécurité des actifs et de la protection des investisseurs. Gouvernance financière : Des acteurs clés du secteur financier ont pris part, mercredi, à Casablanca pour débattre du .', 'size': 2}, {'id': '243', 'title': 'CDG : vers un cadre renforcé pour les dépositaires de fonds alternatifs', 'source': 'lnt.ma', 'link': 'https://lnt.ma/cdg-vers-un-cadre-renforce-pour-les-depositaires-de-fonds-alternatifs/', 'summary': 'CDG : vers un cadre renforcé pour les dépositaires de fonds alternatifs. Le dépositaire est un acteur clé de l’écosystème des Fonds alternatifs, garant de la bonne gouvernance des fonds, de la sécurité des actifs et de la protection des investisseurs, a affirmé, mercredi à Casablanca, le directeur général du groupe CDG (Caisse de Dépôt et de Gestion), Khalid Safir. Intervenant lors d’une conférence organisée par CDG . ', 'size': 2}], 'main_title': 'Fonds alternatifs : Une feuille de route tracée pour structurer la fonction de dépositaire'}, {'community_id': '26', 'articles': [{'id': '169', 'title': 'Les EnR et le stockage en tête, vers un record des investissements mondiaux dans l’énergie', 'source': 'www.lavieeco.com', 'link': 'https://www.lavieeco.com/affaires/investissements/les-enr-et-le-stockage-en-tete-vers-un-record-des-investissements-mondiaux-dans-lenergie/', 'summary': "Les EnR et le stockage en tête, vers un record des investissements mondiaux dans l’énergie. Les technologies d'énergie propre, le nucléaire et le stockage d'énergie, devraient attirer 2.200 milliards de dollars d'investissements en 2025. Deux fois plus que les énergies fossiles.", 'size': 2}, {'id': '190', 'title': 'Énergies propres : plus de 2.000 MM$ d’investissements en 2025, selon l’AIE', 'source': 'leseco.ma', 'link': 'https://leseco.ma/business/energies-propres-plus-de-2-000-mm-dinvestissements-en-2025-selon-laie.html', 'summary': 'Énergies propres : plus de 2.000 MM$ d’investissements en 2025, selon l’AIE. 3.300 milliards de dollars (MM$). C’est le niveau que devraient atteindre les investisseurs mondiaux dans l’énergie en 2025, selon le dernier rapport annuel de l’Agence internationale de l’énergie (AIE). ', 'size': 2}, {'id': '238', 'title': 'Les investissements mondiaux dans l’énergie devraient atteindre un niveau record en 2025', 'source': 'lnt.ma', 'link': 'https://lnt.ma/les-investissements-mondiaux-dans-lenergie-devraient-atteindre-un-niveau-record-en-2025/', 'summary': 'Les investissements mondiaux dans l’énergie devraient atteindre un niveau record en 2025. Les investissements mondiaux dans l’énergie devraient atteindre un niveau record de 3.300 milliards de dollars en 2025, selon l’Agence internationale de l’énergie (AIE). Les technologies d’énergie propre, notamment les énergies renouvelables, le nucléaire et le stockage d’énergie, devraient attirer 2.200 milliards de dollars d’investissements, soit deux fois plus que les énergies fossiles, estime l’AIE dans . ', 'size': 3}], 'main_title': 'Les investissements mondiaux dans l’énergie devraient atteindre un niveau record en 2025'}, {'community_id': '27', 'articles': [{'id': '179', 'title': 'BMCE Capital Gestion doublement primée au «\xa0Lipper MENA Markets 2025 Fund Awards\xa0»', 'source': 'maroc-diplomatique.net', 'link': 'https://maroc-diplomatique.net/bmce-capital-gestion-doublement-primee-au-lipper-mena-markets-2025-fund-awards/', 'summary': 'BMCE Capital Gestion doublement primée au « Lipper MENA Markets 2025 Fund Awards ». Deux fonds de BMCE Capital Gestion ont été primés dans les segments « MENA Markets Fund » et « MENA Markets Domestic Funds », à l’occasion de l’édition du « Lipper MENA Markets 2025 Fund Awards », organisée par London Stock Exchange Group (LSEG). Ainsi, le FCP (Fonds Commun de Placement) Capital Trésor a remporté le prix du meilleur fonds sur .', 'size': 3}, {'id': '279', 'title': 'BMCE Capital Gestion décroche une double consécration à Londres', 'source': 'www.challenge.ma', 'link': 'https://www.challenge.ma/bmce-capital-gestion-decroche-une-double-consecration-a-londres-304218/', 'summary': 'BMCE Capital Gestion décroche une double consécration à Londres. Deux fonds communs de placement de BMCE Capital Gestion, filiale du Groupe Bank of Africa, ont remporté des prix à l’occasion de la nouvelle édition du « Lipper MENA Markets 2025 Fund Awards », organisée dernièrement par London Stock Exchange Group. Capital Trésor décroche le titre de meilleur fonds sur 10 ans', 'size': 3}, {'id': '314', 'title': 'BMCE Capital Gestion distinguée aux Lipper MENA Markets 2025 Fund Awards', 'source': 'lnt.ma', 'link': 'https://lnt.ma/bmce-capital-gestion-distinguee-aux-lipper-mena-markets-2025-fund-awards/', 'summary': 'BMCE Capital Gestion distinguée aux Lipper MENA Markets 2025 Fund Awards. BMCE Capital Gestion a été mise à l’honneur lors de l’édition 2025 des Lipper MENA Markets Fund Awards, un événement organisé par le London Stock Exchange Group (LSEG) et dédié à la reconnaissance des meilleures performances dans le secteur de la gestion d’actifs au niveau de la région MENA. À cette occasion, deux fonds gérés . ', 'size': 3}], 'main_title': 'BMCE Capital Gestion doublement primée au «\xa0Lipper MENA Markets 2025 Fund Awards\xa0»'}, {'community_id': '28', 'articles': [{'id': '182', 'title': 'Automobile : les exportations marocaines reculent pour la première fois depuis 2020', 'source': 'maroc-diplomatique.net', 'link': 'https://maroc-diplomatique.net/automobile-les-exportations-marocaines-reculent-pour-la-premiere-fois-depuis-2020/', 'summary': 'Automobile : les exportations marocaines reculent pour la première fois depuis 2020. Au premier trimestre 2025, les exportations du secteur automobile marocain ont reculé de 7,8 %, une première depuis 2020. En cause : la baisse de la demande européenne pour les véhicules thermiques, le ralentissement de la production locale et les mutations du marché mondial. Le Maroc mise désormais sur l’électrique pour relancer une industrie stratégique .', 'size': 2}, {'id': '213', 'title': 'Exportations automobiles : faut-il s’inquiéter du coup de frein ?', 'source': 'leseco.ma', 'link': 'https://leseco.ma/business/exportations-automobiles-faut-il-sinquieter-du-coup-de-frein.html', 'summary': 'Exportations automobiles : faut-il s’inquiéter du coup de frein ?. Depuis le début de l’année, les exportations automobiles marocaines, majoritairement destinées à l’Europe, enregistrent une baisse inédite, notamment sous l’effet du recul des ventes de véhicules thermiques, de plus en supplantés par les modèles électriques et hybrides. ', 'size': 2}], 'main_title': 'Automobile : les exportations marocaines reculent pour la première fois depuis 2020'}, {'community_id': '18', 'articles': [{'id': '246', 'title': "L'Arabie Saoudite rassure l'état de santé des pèlerins", 'source': 'fr.hespress.com', 'link': 'https://fr.hespress.com/427697-larabie-saoudite-rassure-letat-de-sante-des-pelerins.html', 'summary': "L'Arabie Saoudite rassure l'état de santé des pèlerins. Le ministre adjoint de la Santé, Mohamed Al-Abd Al-Aali, a indiqué, vendredi, que les équipes médicales saoudiennes n’ont détecté aucun foyer de maladies contagieuses ou de virus parmi les pèlerins au titre du Hajj 1446. Le ministère de la Santé suit l’état sanitaire des pèlerins en continu pendant l’ensemble des rites du Hajj, a indiqué . ", 'size': 3}, {'id': '251', 'title': 'Hajj 2025 : Aucun virus ou maladie contagieuse détecté parmi les pèlerins (ministère de la Santé)', 'source': 'lematin.ma', 'link': 'https://lematin.ma/societe/hajj-2025-aucun-virus-ou-maladie-contagieuse-detecte-parmi-les-pelerins/284210', 'summary': 'Hajj 2025 : Aucun virus ou maladie contagieuse détecté parmi les pèlerins (ministère de la Santé). Le ministère de la Santé suit l’état sanitaire des pèlerins en continu pendant l’ensemble des rites du Hajj, a indiqué le responsable dans une déclaration à la presse, ajoutant qu’.', 'size': 3}, {'id': '303', 'title': 'Aucun virus ou maladie contagieuse détecté parmi les pèlerins', 'source': 'maroc-diplomatique.net', 'link': 'https://maroc-diplomatique.net/aucun-virus-ou-maladie-contagieuse-detecte-parmi-les-pelerins/', 'summary': 'Aucun virus ou maladie contagieuse détecté parmi les pèlerins. Les équipes médicales saoudiennes n’ont détecté aucun foyer de maladies contagieuses ou de virus parmi les pèlerins au titre du Hajj 1446, a affirmé, vendredi, le ministre adjoint de la Santé, Mohamed Al-Abd Al-Aali. Le ministère de la Santé suit l’état sanitaire des pèlerins en continu pendant l’ensemble des rites du Hajj, a indiqué le .', 'size': 3}], 'main_title': "L'Arabie Saoudite rassure l'état de santé des pèlerins"}];
+        
+        const tooltip = d3.select("#tooltip");
+        
+        const communityColors = d3.scaleOrdinal()
+            .domain(treemapData.map(d => d.community_id))
+            .range(d3.quantize(d3.interpolateRainbow, treemapData.length));
+        
+        let clickTimer = null;
+        let clickCount = 0;
+        
+        function createTreemap(data, containerId) {
+            const container = d3.select(`#${containerId}`);
+            const width = container.node().getBoundingClientRect().width;
+            const height = container.node().getBoundingClientRect().height;
+            
+            const sources = [...new Set(data.articles.map(d => d.source))];
+            const color = d3.scaleOrdinal()
+                .domain(sources)
+                .range(d3.quantize(d3.interpolateHcl("#007FFF", "#FFA500"), sources.length));
+            
+                        
+            const hierarchyData = {
+                name: "root",
+                children: data.articles
+            };
+            
+            const root = d3.hierarchy(hierarchyData)
+                .sum(d => d.size || 1)
+                .sort((a, b) => b.value - a.value);
+            
+            const treemap = d3.treemap()
+                .size([width, height])
+                .padding(4)
+                .round(true);
+            
+            treemap(root);
+            
+            const nodes = container.selectAll(".node")
+                .data(root.leaves())
+                .enter()
+                .append("div")
+                .attr("class", "node")
+                .style("left", d => `${d.x0}px`)
+                .style("top", d => `${d.y0}px`)
+                .style("width", d => `${d.x1 - d.x0}px`)
+                .style("height", d => `${d.y1 - d.y0}px`)
+                .style("background-color", d => color(d.data.source))
+                .on("click", function(event, d) {
+                    clickCount++;
+                    
+                    if (clickCount === 1) {
+                        showTooltip(event, d);
+                        
+                        clickTimer = setTimeout(function() {
+                            clickCount = 0;
+                        }, 300);
+                    } else {
+                        clearTimeout(clickTimer);
+                        clickCount = 0;
+                        if (d.data.link && d.data.link !== "#") {
+                            window.open(d.data.link, '_blank');
+                        }
+                    }
+                })
+                .on("mouseover", function(event, d) {
+                    if (window.innerWidth > 768) {
+                        showTooltip(event, d);
+                    }
+                })
+                .on("mousemove", function(event) {
+                    if (window.innerWidth > 768) {
+                        moveTooltip(event);
+                    }
+                })
+                .on("mouseout", function() {
+                    if (window.innerWidth > 768 && clickCount === 0) {
+                        hideTooltip();
+                    }
+                });
+            
+            nodes.append("div")
+                .attr("class", "node-content")
+                .html(d => `
+                    <div class="node-title">${d.data.title ? d.data.title : 'Sans titre'}</div>
+                    <div class="node-source">${d.data.source}</div>
+                `);
+        }
+        
+        function showTooltip(event, d) {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = d.data.summary || '';
+
+            const cleanSummary = tempDiv.textContent || tempDiv.innerText || '';
+
+            tooltip.style("opacity", 1)
+                .html(`
+                    <div class="tooltip-title">${d.data.title}</div>
+                    <div class="tooltip-source">${d.data.source}</div>
+                    <div class="tooltip-summary">${cleanSummary ? cleanSummary : ''}</div>
+                `);
+
+            moveTooltip(event);
+        }
+        
+        function moveTooltip(event) {
+            const tooltipNode = tooltip.node();
+            const tooltipWidth = tooltipNode.offsetWidth;
+            const tooltipHeight = tooltipNode.offsetHeight;
+            
+            let left = event.pageX + 15;
+            let top = event.pageY + 15;
+            
+            if (left + tooltipWidth > window.innerWidth) {
+                left = event.pageX - tooltipWidth - 15;
+            }
+            
+            if (top + tooltipHeight > window.innerHeight) {
+                top = event.pageY - tooltipHeight - 15;
+            }
+            
+            if (window.innerWidth <= 768) {
+                left = (window.innerWidth - tooltipWidth) / 2;
+                top = window.scrollY + (window.innerHeight - tooltipHeight) / 3;
+            }
+            
+            tooltip.style("left", `${left}px`)
+                .style("top", `${top}px`);
+        }
+        
+        // Fonction pour cacher le tooltip
+        function hideTooltip() {
+            tooltip.style("opacity", 0);
+        }
+        
+        document.addEventListener('click', function(event) {
+            if (window.innerWidth <= 768 && 
+                !event.target.closest('.node') && 
+                !event.target.closest('.tooltip')) {
+                hideTooltip();
+            }
+        });
+        
+        function initCarousel() {
+            const carouselContainer = document.getElementById('treemap-carousel');
+            
+            treemapData.forEach((data, index) => {
+                const slide = document.createElement('div');
+                slide.className = 'swiper-slide';
+                
+                const title = document.createElement('div');
+                title.className = 'community-title';
+                title.textContent = data.main_title;
+                slide.appendChild(title);
+                
+                const treemapContainer = document.createElement('div');
+                treemapContainer.className = 'treemap-container';
+                treemapContainer.id = `treemap-${data.community_id}`;
+                slide.appendChild(treemapContainer);
+                
+                carouselContainer.appendChild(slide);
+            });
+            
+            const swiper = new Swiper(".mySwiper", {
+                pagination: {
+                    el: ".swiper-pagination",
+                    clickable: true,
+                    
+                },
+                navigation: {
+                    nextEl: ".swiper-button-next",
+                    prevEl: ".swiper-button-prev",
+                },
+                spaceBetween: 30,
+                
+                keyboard: {
+                    enabled: true,
+                },
+                grabCursor: true, 
+                effect: "slide", 
+                speed: 600, 
+                loop: true, 
+                spaceBetween: 30,
+                on: {
+                    slideChange: function() {
+                        
+                        setTimeout(function() {
+                            window.dispatchEvent(new Event('resize'));
+                            hideTooltip();
+                        }, 300);
+                    }
+                }
+            });
+            
+            setTimeout(() => {
+                treemapData.forEach(data => {
+                    createTreemap(data, `treemap-${data.community_id}`);
+                });
+            }, 300);
+            
+            window.addEventListener('resize', () => {
+                treemapData.forEach(data => {
+                    const container = document.getElementById(`treemap-${data.community_id}`);
+                    container.innerHTML = '';
+                    createTreemap(data, `treemap-${data.community_id}`);
+                });
+                hideTooltip();
+            });
+        }
+        
+        window.addEventListener('load', initCarousel);
+        
+    </script>
+    
+    
+    
+</body>
+</html>
+    
