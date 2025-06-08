@@ -1,5 +1,469 @@
 <!DOCTYPE html>
 <html lang="ar" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أهم الأخبار - Treemap Carousel</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/9.4.1/swiper-bundle.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/9.4.1/swiper-bundle.min.js"></script>
+    
+    
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f4f4f4;
+              
+        }
+        
+        .swiper {
+            width: 100%;
+            height: 90vh;
+            margin-top: 10px;
+        }
+        
+        .swiper-slide {
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 10px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin: 10px;
+            width: calc(100% - 20px); /* Utilisez calc pour soustraire les marges */
+            margin-left: auto;
+            margin-right: auto;
 
+        }
+        
+        .treemap-container {
+           width: 100%;
+            height: 100%;
+            margin-bottom: 10px;
+            direction: rtl; /* Changez rtl en ltr */
+            position: relative;
+          z-index: 1;
+
+        }
+        
+        .community-title {
+            font-size: 16px;  
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+            position: relative;
+              z-index: 10;
+              padding: 10px;
+              background: rgba(255, 255, 255, 0.8); 
+              text-align: center;
+        }
+        
+        .node {
+            overflow: hidden;
+            border: 1px solid white;
+            position: absolute;
+            transition: all 0.3s;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .node:hover {
+            opacity: 0.9;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+        
+        .node-content {
+            padding: 8px;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .node-title {
+            font-size: 14px;  
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        
+        .node-source {
+            font-size: 12px;  
+            color: #666;
+        }
+        
+        .tooltip {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.3);
+            font-size: 16px; 
+            max-width: 90%;
+            width: 350px;
+            color: #333;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            direction: rtl;
+            text-align: right;
+        }
+        
+        .tooltip-title {
+            font-size: 16px;  
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .tooltip-source {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 10px;
+        }
+        
+        .tooltip-summary {
+            font-size: 15px;
+            line-height: 1.4;
+        }
+        
+        .swiper-pagination {
+            position: relative;
+            bottom: 0;
+            margin-top: 15px;
+        }
+        
+        .swiper-pagination-bullet {
+            width: 12px;
+            height: 12px;
+            background-color: #ccc;
+            opacity: 0.7;
+            transition: all 0.3s;
+        }
+        
+        .swiper-pagination-bullet-active {
+            background-color: #007aff;
+            opacity: 1;
+            width: 20px;
+            border-radius: 6px;
+        }
+        
+        .swiper-button-next, .swiper-button-prev {
+            color: #fff;
+            background-color: rgba(0, 0, 0, 0.4);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+        
+        .swiper-button-next:hover, .swiper-button-prev:hover {
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+        
+        .swiper-button-next:after, .swiper-button-prev:after {
+            font-size: 18px;
+        }
+        
+        header {
+            background-color: #333;
+            color: white;
+            text-align: center;
+        }
+        
+        .header-title {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .header-subtitle {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        @media screen and (max-width: 768px) {
+            .node-title {
+                font-size: 14px;  
+            }
+            .node-source {
+                font-size: 12px;  
+            }
+            .community-title {
+                font-size: 16px;  
+            }
+            .tooltip {
+                max-width: 90%;
+                padding: 12px;
+            }
+            .tooltip-title {
+                font-size: 16px;
+            }
+            .swiper-button-next, .swiper-button-prev {
+                width: 36px;
+                height: 36px;
+            }
+        }
+    </style>
+    
+    
+    
+</head>
+<body>
+    <header> 
+        <div class="header-title"> Les principales actualités des dernières 24 heures
+
+</div>    
+        <div class="header-subtitle"> Dernière mise à jour : 08/06/2025 - 18h27</div>  
+    </header>
+    
+    
+
+    <div class="swiper mySwiper">
+        <div class="swiper-wrapper" id="treemap-carousel"></div>
+        <div class="swiper-pagination"></div>
+        <div class="swiper-button-next"></div>
+        <div class="swiper-button-prev"></div>
+    </div>
+
+    <div id="tooltip" class="tooltip"></div>
+
+    <script>
+        const treemapData = [{'community_id': '6', 'articles': [{'id': '4', 'title': 'Les températures attendues ce dimanche 8 juin 2025', 'source': 'fr.hespress.com', 'link': 'https://fr.hespress.com/427836-les-temperatures-attendues-ce-dimanche-8-juin-2025.html', 'summary': 'Les températures attendues ce dimanche 8 juin 2025. Voici les températures minimales et maximales prévues par la Direction générale de la météorologie pour la journée du dimanche 8 juin 2025 Min Max – Oujda 23 39 – Bouarfa 21 37 – Al Hoceima 19 29 – Tétouan 19 30 – Sebta 19 24 – Mellilia 20 26 – Tanger 22 35 – Kénitra . ', 'size': 2}, {'id': '57', 'title': 'Températures prévues pour le lundi 09 juin 2025', 'source': 'maroc-diplomatique.net', 'link': 'https://maroc-diplomatique.net/temperatures-prevues-pour-le-lundi-09-juin-2025/', 'summary': 'Températures prévues pour le lundi 09 juin 2025. Voici les températures minimales et maximales prévues par la Direction générale de la météorologie pour le lundi 09 juin 2025: Min Max – Oujda 20 36 – Bouarfa 23 37 – Al Hoceima 20 26 – Tétouan 19 24 – Sebta 20 23 – Mellilia 20 24 – Tanger 21 29 – Kénitra 19 27 .', 'size': 2}], 'main_title': 'Les températures attendues ce dimanche 8 juin 2025'}, {'community_id': '1', 'articles': [{'id': '10', 'title': 'Le match amical Maroc-Bénin à guichets fermés (FRMF)', 'source': 'lematin.ma', 'link': 'https://lematin.ma/sports/le-match-amical-maroc-benin-a-guichets-fermes-frmf/284349', 'summary': "Le match amical Maroc-Bénin à guichets fermés (FRMF). Par ailleurs, le Comité d'organisation invite les supporters qui se rendront au Stade à respecter le dispositif organisationnel et sécuritaire mis en place afin d’assurer.", 'size': 3}, {'id': '72', 'title': 'Amical: Maroc-Bénin à guichets fermés', 'source': 'fr.hespress.com', 'link': 'https://fr.hespress.com/427854-amical-maroc-benin-a-guichets-fermes.html', 'summary': 'Amical: Maroc-Bénin à guichets fermés. Le match amical qui opposera le Maroc et le Bénin, lundi au Complexe sportif de Fès, « se jouera à guichets fermés après la vente de tous les billets », a annoncé la Commission d’organisation de cette rencontre. Par ailleurs, le Comité d’organisation « invite les supporters qui se rendront au Stade à respecter le dispositif organisationnel et . ', 'size': 3}, {'id': '97', 'title': 'Amical: Maroc-Bénin à guichets fermés (FRMF)', 'source': 'maroc-diplomatique.net', 'link': 'https://maroc-diplomatique.net/amical-maroc-benin-a-guichets-fermes-frmf/', 'summary': 'Amical: Maroc-Bénin à guichets fermés (FRMF). Le match amical qui opposera le Maroc et le Bénin, lundi au Complexe sportif de Fès, « se jouera à guichets fermés après la vente de tous les billets », a annoncé la Commission d’organisation de cette rencontre. Par ailleurs, le Comité d’organisation « invite les supporters qui se rendront au Stade à respecter le dispositif organisationnel et .', 'size': 3}], 'main_title': 'Le match amical Maroc-Bénin à guichets fermés (FRMF)'}, {'community_id': '2', 'articles': [{'id': '38', 'title': "SM le Roi, Amir Al-Mouminine, accomplit la prière de l'Aïd Al-Adha à la mosquée Hassan II à Tétouan et reçoit les vœux en cette heureuse occasion", 'source': 'www.lopinion.ma', 'link': 'https://www.lopinion.ma/SM-le-Roi-Amir-Al-Mouminine-accomplit-la-priere-de-l-Aid-Al-Adha-a-la-mosquee-Hassan-II-a-Tetouan-et-recoit-les-voeux_a68430.html', 'summary': "SM le Roi, Amir Al-Mouminine, accomplit la prière de l'Aïd Al-Adha à la mosquée Hassan II à Tétouan et reçoit les vœux en cette heureuse occasion. Sa Majesté le Roi Mohammed VI, Amir Al-Mouminine, que Dieu L'assiste, accompagné de SAR le Prince Héritier Moulay El Hassan, de SAR le Prince Moulay Rachid, de SA le Prince Moulay Ahmed et de SA le Prince Moulay Ismaïl, a accompli, samedi 10 Di Al Hijja 1446 de l'Hégire, correspondant au 07 juin 2025, la prière de l'Aïd Al-Adha béni à la mosquée Hassan II à Tétouan.", 'size': 4}, {'id': '42', 'title': 'SM le Roi accomplit la prière de l’Aïd Al-Adha à la mosquée Hassan II à Tétouan', 'source': 'www.challenge.ma', 'link': 'https://www.challenge.ma/sm-le-roi-accomplit-la-priere-de-laid-al-adha-a-la-mosquee-hassan-ii-a-tetouan-304289/', 'summary': 'SM le Roi accomplit la prière de l’Aïd Al-Adha à la mosquée Hassan II à Tétouan. Sa Majesté le Roi Mohammed VI, Amir Al-Mouminine, que Dieu L’assiste, accompagné de SAR le Prince Héritier Moulay El Hassan, de SAR le Prince Moulay Rachid, de SA le Prince Moulay Ahmed et de SA le Prince Moulay Ismaïl, a accompli, samedi 10 Di Al Hijja 1446 de l’Hégire, correspondant', 'size': 4}, {'id': '49', 'title': 'SM le Roi Mohammed VI, Amir Al-Mouminine, accomplit la prière de l’Aïd Al-Adha à la mosquée Hassan II à Tétouan et reçoit les vœux en cette heureuse occasion', 'source': 'aujourdhui.ma', 'link': 'https://aujourdhui.ma/actualite/sm-le-roi-mohammed-vi-amir-al-mouminine-accomplit-la-priere-de-laid-al-adha-a-la-mosquee-hassan-ii-a-tetouan-et-recoit-les-voeux-en-cette-heureuse-occasion', 'summary': 'SM le Roi Mohammed VI, Amir Al-Mouminine, accomplit la prière de l’Aïd Al-Adha à la mosquée Hassan II à Tétouan et reçoit les vœux en cette heureuse occasion. SM le Roi Mohammed VI, Amir Al-Mouminine, que Dieu L’assiste, accompagné de SAR le Prince Héritier Moulay El Hassan, de SAR le Prince Moulay Rachid, de SA le Prince Moulay Ahmed et de SA le Prince Moulay Ismaïl, a accompli, samedi 10 Di Al Hijja 1446 de l’Hégire, correspondant au 07 juin 2025, la prière .', 'size': 4}, {'id': '65', 'title': 'SM le Roi Mohammed VI accomplit la prière de Aïd Al Adha à la mosquée Hassan II à Tétouan', 'source': 'www.lereporter.ma', 'link': 'https://www.lereporter.ma/sm-le-roi-mohammed-vi-accomplit-la-priere-de-aid-al-adha-a-la-mosquee-hassan-ii-a-tetouan/', 'summary': 'SM le Roi Mohammed VI accomplit la prière de Aïd Al Adha à la mosquée Hassan II à Tétouan. Sa Majesté le Roi Mohammed VI, Amir Al-Mouminine, que Dieu L’assiste, accompagné de SAR le Prince Héritier Moulay El Hassan, de SAR le Prince Moulay Rachid, de SA le Prince Moulay Ahmed et de SA le Prince Moulay Ismaïl, a accompli, samedi 10 Di Al Hijja 1446 de l’Hégire, correspondant au 07 juin 2025, la ', 'size': 4}], 'main_title': "SM le Roi, Amir Al-Mouminine, accomplit la prière de l'Aïd Al-Adha à la mosquée Hassan II à Tétouan et reçoit les vœux en cette heureuse occasion"}, {'community_id': '3', 'articles': [{'id': '39', 'title': 'Le Maroc à Nice en porte-voix de l’Afrique à la Conférence de l’ONU sur l’océan', 'source': 'www.challenge.ma', 'link': 'https://www.challenge.ma/le-maroc-a-nice-en-porte-voix-de-lafrique-a-la-conference-de-lonu-sur-locean-304299/', 'summary': 'Le Maroc à Nice en porte-voix de l’Afrique à la Conférence de l’ONU sur l’océan. La capitale azurienne s’apprête à accueillir, du 9 au 13 juin, la 3è Conférence des Nations unies sur l’Océan (UNOC-3), une occasion pour faire entendre la voix africaine pour le développement d’une économie bleue inclusive et durable, au cœur des préoccupations du Maroc, doté d’une feuille de route ambitieuse dans', 'size': 3}, {'id': '67', 'title': '3ᵉ Conférence des Nations unies sur l’Océan, le Maroc veut porter la voix de l’Afrique', 'source': 'lnt.ma', 'link': 'https://lnt.ma/3%e1%b5%89-conference-des-nations-unies-sur-locean-le-maroc-veut-porter-la-voix-de-lafrique/', 'summary': '3ᵉ Conférence des Nations unies sur l’Océan, le Maroc veut porter la voix de l’Afrique. Le Royaume du Maroc prendra part, du 9 au 13 juin à Nice, à la troisième Conférence des Nations unies sur l’Océan (UNOC-3), en co-présidant, aux côtés de la France, le sommet « Afrique pour l’Océan ». Cette rencontre de haut niveau vise à mettre en avant les perspectives du continent africain en matière de . ', 'size': 3}, {'id': '80', 'title': "Sommet sur l'Océan à Nice : le Maroc porte la voix de l’Afrique", 'source': 'www.lopinion.ma', 'link': 'https://www.lopinion.ma/Sommet-sur-l-Ocean-a-Nice-le-Maroc-porte-la-voix-de-l-Afrique_a68458.html', 'summary': "Sommet sur l'Océan à Nice : le Maroc porte la voix de l’Afrique. La capitale azurienne s’apprête à accueillir, du 9 au 13 juin, la 3è Conférence des Nations unies sur l’Océan (UNOC-3), une occasion pour faire entendre la voix africaine pour le développement d'une économie bleue inclusive et durable, au cœur des préoccupations du Maroc, doté d'une feuille de route ambitieuse dans ce domaine.", 'size': 3}], 'main_title': 'Le Maroc à Nice en porte-voix de l’Afrique à la Conférence de l’ONU sur l’océan'}, {'community_id': '5', 'articles': [{'id': '64', 'title': 'Grâce Royale au profit de 1.526 personnes condamnées', 'source': 'atlasinfo.fr', 'link': 'https://atlasinfo.fr/grace-royale-au-profit-de-1-526-personnes-condamnees.html', 'summary': 'Grâce Royale au profit de 1.526 personnes condamnées. A l’occasion de l’Aïd Al Adha de cette année 1446 H – 2025, le Roi Mohammed VI a accordé sa Grâce à 1.526 personnes condamnées par différents tribunaux du Royaume, dont certaines sont en détention et d’autres en liberté, indique un communiqué du ministère de la Justice. L’article est apparu en premier sur .', 'size': 2}, {'id': '66', 'title': 'Aïd Al-Adha 2025 : Grâce Royale accordée à 1.526 personnes', 'source': 'lnt.ma', 'link': 'https://lnt.ma/aid-al-adha-2025-grace-royale-accordee-a-1-526-personnes/', 'summary': 'Aïd Al-Adha 2025 : Grâce Royale accordée à 1.526 personnes. À l’occasion de l’Aïd Al-Adha 1446 H – 2025 G, le Roi Mohammed VI a accordé sa Grâce à 1.526 personnes condamnées par les juridictions du Royaume. Cette mesure de clémence, traditionnellement prononcée lors des grandes fêtes religieuses, concerne à la fois des détenus et des personnes en liberté, selon un communiqué du ministère de . ', 'size': 2}], 'main_title': 'Grâce Royale au profit de 1.526 personnes condamnées'}, {'community_id': '0', 'articles': [{'id': '70', 'title': "Ligue des nations : La France prend la 3e place après sa victoire sur l'Allemagne", 'source': 'fr.hespress.com', 'link': 'https://fr.hespress.com/427869-ligue-des-nations-la-france-prend-la-3e-place-apres-sa-victoire-sur-lallemagne.html', 'summary': "Ligue des nations : La France prend la 3e place après sa victoire sur l'Allemagne. L’équipe de France a dominé l’Allemagne (2-0) à Stuttgart ce dimanche, lors de la petite finale du final four de la Ligue des nations. Les Bleus ont été porté par Kylian Mbappé, auteur d’un but et d’une passe pour Michael Olise. ", 'size': 2}, {'id': '75', 'title': "Ligue des nations : la France termine 3e en battant l'Allemagne", 'source': 'lematin.ma', 'link': 'https://lematin.ma/sports/ligue-des-nations-la-france-termine-3e-en-battant-lallemagne/284372', 'summary': "Ligue des nations : la France termine 3e en battant l'Allemagne. Les buts français ont été inscrits par le capitaine Kylian Mbappé (45e) et Michael Olise (84e). La finale de la compétition mettra aux prises l'Espagne, tenante du titre, au Po.", 'size': 2}], 'main_title': "Ligue des nations : La France prend la 3e place après sa victoire sur l'Allemagne"}, {'community_id': '4', 'articles': [{'id': '81', 'title': "7 morts dans un accident près d'El Kelâa des Sraghna", 'source': 'www.lopinion.ma', 'link': 'https://www.lopinion.ma/7-morts-dans-un-accident-pres-d-El-Kelaa-des-Sraghna_a68456.html', 'summary': "7 morts dans un accident près d'El Kelâa des Sraghna. Sept personnes ont trouvé la mort dans un accident survenu, dimanche, sur la route nationale N23, au niveau de la commune de Sour El Aaz (Caïdat Sahrij), suite au renversement d’un triporteur avec 14 individus à bord se dirigeant vers un site d'estivage, ont annoncé les autorités locales.", 'size': 2}, {'id': '90', 'title': '7 morts dans un accident sur la route nationale N23 près d’El Kelaa des Sraghna', 'source': 'aujourdhui.ma', 'link': 'https://aujourdhui.ma/actualite/7-morts-dans-un-accident-sur-la-route-nationale-n23-pres-del-kelaa-des-sraghna2', 'summary': '7 morts dans un accident sur la route nationale N23 près d’El Kelaa des Sraghna. Sept personnes ont trouvé la mort dans un accident survenu, dimanche, sur la route nationale N23, au niveau de la commune de Sour El Aaz (Caïdat Sahrij), suite au renversement d’un triporteur avec 14 individus à bord se dirigeant vers un site d’estivage, ont annoncé les autorités locales. Aussitôt alertés, les autorités locales et les .', 'size': 2}], 'main_title': "7 morts dans un accident près d'El Kelâa des Sraghna"}];
+        
+        const tooltip = d3.select("#tooltip");
+        
+        const communityColors = d3.scaleOrdinal()
+            .domain(treemapData.map(d => d.community_id))
+            .range(d3.quantize(d3.interpolateRainbow, treemapData.length));
+        
+        let clickTimer = null;
+        let clickCount = 0;
+        
+        function createTreemap(data, containerId) {
+            const container = d3.select(`#${containerId}`);
+            const width = container.node().getBoundingClientRect().width;
+            const height = container.node().getBoundingClientRect().height;
+            
+            const sources = [...new Set(data.articles.map(d => d.source))];
+            const color = d3.scaleOrdinal()
+                .domain(sources)
+                .range(d3.quantize(d3.interpolateHcl("#007FFF", "#FFA500"), sources.length));
+            
+                        
+            const hierarchyData = {
+                name: "root",
+                children: data.articles
+            };
+            
+            const root = d3.hierarchy(hierarchyData)
+                .sum(d => d.size || 1)
+                .sort((a, b) => b.value - a.value);
+            
+            const treemap = d3.treemap()
+                .size([width, height])
+                .padding(4)
+                .round(true);
+            
+            treemap(root);
+            
+            const nodes = container.selectAll(".node")
+                .data(root.leaves())
+                .enter()
+                .append("div")
+                .attr("class", "node")
+                .style("left", d => `${d.x0}px`)
+                .style("top", d => `${d.y0}px`)
+                .style("width", d => `${d.x1 - d.x0}px`)
+                .style("height", d => `${d.y1 - d.y0}px`)
+                .style("background-color", d => color(d.data.source))
+                .on("click", function(event, d) {
+                    clickCount++;
+                    
+                    if (clickCount === 1) {
+                        showTooltip(event, d);
+                        
+                        clickTimer = setTimeout(function() {
+                            clickCount = 0;
+                        }, 300);
+                    } else {
+                        clearTimeout(clickTimer);
+                        clickCount = 0;
+                        if (d.data.link && d.data.link !== "#") {
+                            window.open(d.data.link, '_blank');
+                        }
+                    }
+                })
+                .on("mouseover", function(event, d) {
+                    if (window.innerWidth > 768) {
+                        showTooltip(event, d);
+                    }
+                })
+                .on("mousemove", function(event) {
+                    if (window.innerWidth > 768) {
+                        moveTooltip(event);
+                    }
+                })
+                .on("mouseout", function() {
+                    if (window.innerWidth > 768 && clickCount === 0) {
+                        hideTooltip();
+                    }
+                });
+            
+            nodes.append("div")
+                .attr("class", "node-content")
+                .html(d => `
+                    <div class="node-title">${d.data.title ? d.data.title : 'Sans titre'}</div>
+                    <div class="node-source">${d.data.source}</div>
+                `);
+        }
+        
+        function showTooltip(event, d) {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = d.data.summary || '';
+
+            const cleanSummary = tempDiv.textContent || tempDiv.innerText || '';
+
+            tooltip.style("opacity", 1)
+                .html(`
+                    <div class="tooltip-title">${d.data.title}</div>
+                    <div class="tooltip-source">${d.data.source}</div>
+                    <div class="tooltip-summary">${cleanSummary ? cleanSummary : ''}</div>
+                `);
+
+            moveTooltip(event);
+        }
+        
+        function moveTooltip(event) {
+            const tooltipNode = tooltip.node();
+            const tooltipWidth = tooltipNode.offsetWidth;
+            const tooltipHeight = tooltipNode.offsetHeight;
+            
+            let left = event.pageX + 15;
+            let top = event.pageY + 15;
+            
+            if (left + tooltipWidth > window.innerWidth) {
+                left = event.pageX - tooltipWidth - 15;
+            }
+            
+            if (top + tooltipHeight > window.innerHeight) {
+                top = event.pageY - tooltipHeight - 15;
+            }
+            
+            if (window.innerWidth <= 768) {
+                left = (window.innerWidth - tooltipWidth) / 2;
+                top = window.scrollY + (window.innerHeight - tooltipHeight) / 3;
+            }
+            
+            tooltip.style("left", `${left}px`)
+                .style("top", `${top}px`);
+        }
+        
+        // Fonction pour cacher le tooltip
+        function hideTooltip() {
+            tooltip.style("opacity", 0);
+        }
+        
+        document.addEventListener('click', function(event) {
+            if (window.innerWidth <= 768 && 
+                !event.target.closest('.node') && 
+                !event.target.closest('.tooltip')) {
+                hideTooltip();
+            }
+        });
+        
+        function initCarousel() {
+            const carouselContainer = document.getElementById('treemap-carousel');
+            
+            treemapData.forEach((data, index) => {
+                const slide = document.createElement('div');
+                slide.className = 'swiper-slide';
+                
+                const title = document.createElement('div');
+                title.className = 'community-title';
+                title.textContent = data.main_title;
+                slide.appendChild(title);
+                
+                const treemapContainer = document.createElement('div');
+                treemapContainer.className = 'treemap-container';
+                treemapContainer.id = `treemap-${data.community_id}`;
+                slide.appendChild(treemapContainer);
+                
+                carouselContainer.appendChild(slide);
+            });
+            
+            const swiper = new Swiper(".mySwiper", {
+                pagination: {
+                    el: ".swiper-pagination",
+                    clickable: true,
+                    
+                },
+                navigation: {
+                    nextEl: ".swiper-button-next",
+                    prevEl: ".swiper-button-prev",
+                },
+                spaceBetween: 30,
+                
+                keyboard: {
+                    enabled: true,
+                },
+                grabCursor: true, 
+                effect: "slide", 
+                speed: 600, 
+                loop: true, 
+                spaceBetween: 30,
+                on: {
+                    slideChange: function() {
+                        
+                        setTimeout(function() {
+                            window.dispatchEvent(new Event('resize'));
+                            hideTooltip();
+                        }, 300);
+                    }
+                }
+            });
+            
+            setTimeout(() => {
+                treemapData.forEach(data => {
+                    createTreemap(data, `treemap-${data.community_id}`);
+                });
+            }, 300);
+            
+            window.addEventListener('resize', () => {
+                treemapData.forEach(data => {
+                    const container = document.getElementById(`treemap-${data.community_id}`);
+                    container.innerHTML = '';
+                    createTreemap(data, `treemap-${data.community_id}`);
+                });
+                hideTooltip();
+            });
+        }
+        
+        window.addEventListener('load', initCarousel);
+        
+    </script>
+    
+    
+    
+</body>
 </html>
     

@@ -1,4 +1,451 @@
 <html>
-  
+    <head>
+        <meta charset="utf-8">
+        
+            <script src="lib/bindings/utils.js"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 100vh;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body, html {margin: 0; padding: 0; height: 100%; overflow: hidden;}
+        #mynetwork {height: 100vh !important; width: 100% !important;}
+
+    .vis-tooltip {
+        position: absolute;
+        background-color: rgba(255, 241, 200, 1) !important;
+        color: black !important;
+        border-radius: 8px;
+        padding: 12px;
+        font-size: 22px;
+        font-weight: 700;
+        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.8);
+        white-space: normal !important;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        max-width: 80vw;
+        
+        max-height: 80vh;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+        
+        direction: ltr;
+        text-align: left;
+        
+        z-index: 9999 !important;
+        pointer-events: auto !important;
+    }
+    
+    .scroll-buttons {
+        position: absolute;
+        right: 50px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        z-index: 10000;
+        opacity: 0.8;
+    }
+    
+    .scroll-up, .scroll-down {
+        width: 30px;
+        height: 30px;
+        background: #888;
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 50%;
+        margin: 5px 0;
+        cursor: pointer;
+        user-select: none;
+        font-weight: bold;
+    }
+
+       
+
+
+        .controls {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            z-index: 999;
+            display: flex;
+            gap: 10px;
+        }
+        .control-btn {
+            background: rgba(255,255,255,0.8);
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        @media (max-width: 768px) {
+            .control-btn {padding: 8px 12px;}
+        }
+    </style>
+    </head>
+    
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"font": {"vadjust": -70.5}, "group": 6, "id": 4, "label": "Les temp\u00e9ratures attendues ce dimanche...", "shape": "dot", "size": 47, "title": "Les temp\u00e9ratures attendues ce dimanche 8 juin 2025\nSource: fr.hespress.com", "url": "https://fr.hespress.com/427836-les-temperatures-attendues-ce-dimanche-8-juin-2025.html", "x": 0, "y": 0}, {"font": {"vadjust": -88.5}, "group": 1, "id": 10, "label": "Le match amical Maroc-B\u00e9nin \u00e0...", "shape": "dot", "size": 59, "title": "Le match amical Maroc-B\u00e9nin \u00e0 guichets ferm\u00e9s (FRMF)\nSource: lematin.ma", "url": "https://lematin.ma/sports/le-match-amical-maroc-benin-a-guichets-fermes-frmf/284349", "x": 0, "y": 0}, {"font": {"vadjust": -106.5}, "group": 2, "id": 38, "label": "SM le Roi, Amir Al-Mouminine,...", "shape": "dot", "size": 71, "title": "SM le Roi, Amir Al-Mouminine, accomplit la pri\u00e8re de l\u0027A\u00efd Al-Adha \u00e0 la mosqu\u00e9e Hassan II \u00e0 T\u00e9touan et re\u00e7oit les v\u0153ux en cette heureuse occasion\nSource: www.lopinion.ma", "url": "https://www.lopinion.ma/SM-le-Roi-Amir-Al-Mouminine-accomplit-la-priere-de-l-Aid-Al-Adha-a-la-mosquee-Hassan-II-a-Tetouan-et-recoit-les-voeux_a68430.html", "x": 0, "y": 0}, {"font": {"vadjust": -88.5}, "group": 3, "id": 39, "label": "Le Maroc \u00e0 Nice en...", "shape": "dot", "size": 59, "title": "Le Maroc \u00e0 Nice en porte-voix de l\u2019Afrique \u00e0 la Conf\u00e9rence de l\u2019ONU sur l\u2019oc\u00e9an\nSource: www.challenge.ma", "url": "https://www.challenge.ma/le-maroc-a-nice-en-porte-voix-de-lafrique-a-la-conference-de-lonu-sur-locean-304299/", "x": 0, "y": 0}, {"font": {"vadjust": -106.5}, "group": 2, "id": 42, "label": "SM le Roi accomplit la...", "shape": "dot", "size": 71, "title": "SM le Roi accomplit la pri\u00e8re de l\u2019A\u00efd Al-Adha \u00e0 la mosqu\u00e9e Hassan II \u00e0 T\u00e9touan\nSource: www.challenge.ma", "url": "https://www.challenge.ma/sm-le-roi-accomplit-la-priere-de-laid-al-adha-a-la-mosquee-hassan-ii-a-tetouan-304289/", "x": 0, "y": 0}, {"font": {"vadjust": -106.5}, "group": 2, "id": 49, "label": "SM le Roi Mohammed VI,...", "shape": "dot", "size": 71, "title": "SM le Roi Mohammed VI, Amir Al-Mouminine, accomplit la pri\u00e8re de l\u2019A\u00efd Al-Adha \u00e0 la mosqu\u00e9e Hassan II \u00e0 T\u00e9touan et re\u00e7oit les v\u0153ux en cette heureuse occasion\nSource: aujourdhui.ma", "url": "https://aujourdhui.ma/actualite/sm-le-roi-mohammed-vi-amir-al-mouminine-accomplit-la-priere-de-laid-al-adha-a-la-mosquee-hassan-ii-a-tetouan-et-recoit-les-voeux-en-cette-heureuse-occasion", "x": 0, "y": 0}, {"font": {"vadjust": -70.5}, "group": 6, "id": 57, "label": "Temp\u00e9ratures pr\u00e9vues pour le lundi...", "shape": "dot", "size": 47, "title": "Temp\u00e9ratures pr\u00e9vues pour le lundi 09 juin 2025\nSource: maroc-diplomatique.net", "url": "https://maroc-diplomatique.net/temperatures-prevues-pour-le-lundi-09-juin-2025/", "x": 0, "y": 0}, {"font": {"vadjust": -70.5}, "group": 5, "id": 64, "label": "Gr\u00e2ce Royale au profit de...", "shape": "dot", "size": 47, "title": "Gr\u00e2ce Royale au profit de 1.526 personnes condamn\u00e9es\nSource: atlasinfo.fr", "url": "https://atlasinfo.fr/grace-royale-au-profit-de-1-526-personnes-condamnees.html", "x": 0, "y": 0}, {"font": {"vadjust": -106.5}, "group": 2, "id": 65, "label": "SM le Roi Mohammed VI...", "shape": "dot", "size": 71, "title": "SM le Roi Mohammed VI accomplit la pri\u00e8re de A\u00efd Al Adha \u00e0 la mosqu\u00e9e Hassan II \u00e0 T\u00e9touan\nSource: www.lereporter.ma", "url": "https://www.lereporter.ma/sm-le-roi-mohammed-vi-accomplit-la-priere-de-aid-al-adha-a-la-mosquee-hassan-ii-a-tetouan/", "x": 0, "y": 0}, {"font": {"vadjust": -70.5}, "group": 5, "id": 66, "label": "A\u00efd Al-Adha 2025 : Gr\u00e2ce...", "shape": "dot", "size": 47, "title": "A\u00efd Al-Adha 2025 : Gr\u00e2ce Royale accord\u00e9e \u00e0 1.526 personnes\nSource: lnt.ma", "url": "https://lnt.ma/aid-al-adha-2025-grace-royale-accordee-a-1-526-personnes/", "x": 0, "y": 0}, {"font": {"vadjust": -88.5}, "group": 3, "id": 67, "label": "3\u1d49 Conf\u00e9rence des Nations unies...", "shape": "dot", "size": 59, "title": "3\u1d49 Conf\u00e9rence des Nations unies sur l\u2019Oc\u00e9an, le Maroc veut porter la voix de l\u2019Afrique\nSource: lnt.ma", "url": "https://lnt.ma/3%e1%b5%89-conference-des-nations-unies-sur-locean-le-maroc-veut-porter-la-voix-de-lafrique/", "x": 0, "y": 0}, {"font": {"vadjust": -70.5}, "group": 0, "id": 70, "label": "Ligue des nations : La...", "shape": "dot", "size": 47, "title": "Ligue des nations : La France prend la 3e place apr\u00e8s sa victoire sur l\u0027Allemagne\nSource: fr.hespress.com", "url": "https://fr.hespress.com/427869-ligue-des-nations-la-france-prend-la-3e-place-apres-sa-victoire-sur-lallemagne.html", "x": 0, "y": 0}, {"font": {"vadjust": -88.5}, "group": 1, "id": 72, "label": "Amical: Maroc-B\u00e9nin \u00e0 guichets ferm\u00e9s...", "shape": "dot", "size": 59, "title": "Amical: Maroc-B\u00e9nin \u00e0 guichets ferm\u00e9s\nSource: fr.hespress.com", "url": "https://fr.hespress.com/427854-amical-maroc-benin-a-guichets-fermes.html", "x": 0, "y": 0}, {"font": {"vadjust": -70.5}, "group": 0, "id": 75, "label": "Ligue des nations : la...", "shape": "dot", "size": 47, "title": "Ligue des nations : la France termine 3e en battant l\u0027Allemagne\nSource: lematin.ma", "url": "https://lematin.ma/sports/ligue-des-nations-la-france-termine-3e-en-battant-lallemagne/284372", "x": 0, "y": 0}, {"font": {"vadjust": -88.5}, "group": 3, "id": 80, "label": "Sommet sur l\u0027Oc\u00e9an \u00e0 Nice...", "shape": "dot", "size": 59, "title": "Sommet sur l\u0027Oc\u00e9an \u00e0 Nice : le Maroc porte la voix de l\u2019Afrique\nSource: www.lopinion.ma", "url": "https://www.lopinion.ma/Sommet-sur-l-Ocean-a-Nice-le-Maroc-porte-la-voix-de-l-Afrique_a68458.html", "x": 0, "y": 0}, {"font": {"vadjust": -70.5}, "group": 4, "id": 81, "label": "7 morts dans un accident...", "shape": "dot", "size": 47, "title": "7 morts dans un accident pr\u00e8s d\u0027El Kel\u00e2a des Sraghna\nSource: www.lopinion.ma", "url": "https://www.lopinion.ma/7-morts-dans-un-accident-pres-d-El-Kelaa-des-Sraghna_a68456.html", "x": 0, "y": 0}, {"font": {"vadjust": -70.5}, "group": 4, "id": 90, "label": "7 morts dans un accident...", "shape": "dot", "size": 47, "title": "7 morts dans un accident sur la route nationale N23 pr\u00e8s d\u2019El Kelaa des Sraghna\nSource: aujourdhui.ma", "url": "https://aujourdhui.ma/actualite/7-morts-dans-un-accident-sur-la-route-nationale-n23-pres-del-kelaa-des-sraghna2", "x": 0, "y": 0}, {"font": {"vadjust": -88.5}, "group": 1, "id": 97, "label": "Amical: Maroc-B\u00e9nin \u00e0 guichets ferm\u00e9s...", "shape": "dot", "size": 59, "title": "Amical: Maroc-B\u00e9nin \u00e0 guichets ferm\u00e9s (FRMF)\nSource: maroc-diplomatique.net", "url": "https://maroc-diplomatique.net/amical-maroc-benin-a-guichets-fermes-frmf/", "x": 0, "y": 0}, {"borderWidth": 3, "fixed": true, "font": {"bold": true, "color": "#000", "size": 26}, "group": 6, "id": "comm_label_6", "label": "Voici les temp\u00e9ratures minimales et\nmaximales pr\u00e9vues par la Direction...", "mass": 5, "physics": false, "shape": "box", "title": "Voici les temp\u00e9ratures minimales et maximales pr\u00e9vues par la Direction g\u00e9n\u00e9rale de la m\u00e9t\u00e9orologie pour la journ\u00e9e du dimanche 8 juin 2025 Min Max \u2013 Oujda 23 39 \u2013 Bouarfa 21 37 \u2013 Al Hoceima 19 29 \u2013 T\u00e9touan 19 30 \u2013 Sebta 19 24 \u2013 Mellilia 20 26 \u2013 Tanger 22 35 \u2013 K\u00e9nitra . [fr.hespress.com]\n-------------------------------------------------\nVoici les temp\u00e9ratures minimales et maximales pr\u00e9vues par la Direction g\u00e9n\u00e9rale de la m\u00e9t\u00e9orologie pour le lundi 09 juin 2025: Min Max \u2013 Oujda 20 36 \u2013 Bouarfa 23 37 \u2013 Al Hoceima 20 26 \u2013 T\u00e9touan 19 24 \u2013 Sebta 20 23 \u2013 Mellilia 20 24 \u2013 Tanger 21 29 \u2013 K\u00e9nitra 19 27 . [maroc-diplomatique.net]"}, {"borderWidth": 3, "fixed": true, "font": {"bold": true, "color": "#000", "size": 26}, "group": 1, "id": "comm_label_1", "label": "Par ailleurs, le Comit\u00e9 d\u0027organisation\ninvite les supporters qui se...", "mass": 5, "physics": false, "shape": "box", "title": "Par ailleurs, le Comit\u00e9 d\u0027organisation invite les supporters qui se rendront au Stade \u00e0 respecter le dispositif organisationnel et s\u00e9curitaire mis en place afin d\u2019assurer. [lematin.ma]\n-------------------------------------------------\nLe match amical qui opposera le Maroc et le B\u00e9nin, lundi au Complexe sportif de F\u00e8s, \u00ab se jouera \u00e0 guichets ferm\u00e9s apr\u00e8s la vente de tous les billets \u00bb, a annonc\u00e9 la Commission d\u2019organisation de cette rencontre. [fr.hespress.com]\n-------------------------------------------------\nLe match amical qui opposera le Maroc et le B\u00e9nin, lundi au Complexe sportif de F\u00e8s, \u00ab se jouera \u00e0 guichets ferm\u00e9s apr\u00e8s la vente de tous les billets \u00bb, a annonc\u00e9 la Commission d\u2019organisation de cette rencontre. [maroc-diplomatique.net]"}, {"borderWidth": 3, "fixed": true, "font": {"bold": true, "color": "#000", "size": 26}, "group": 2, "id": "comm_label_2", "label": "Sa Majest\u00e9 le Roi Mohammed\nVI, Amir Al-Mouminine, que Dieu...", "mass": 5, "physics": false, "shape": "box", "title": "Sa Majest\u00e9 le Roi Mohammed VI, Amir Al-Mouminine, que Dieu L\u0027assiste, accompagn\u00e9 de SAR le Prince H\u00e9ritier Moulay El Hassan, de SAR le Prince Moulay Rachid, de SA le Prince Moulay Ahmed et de SA le Prince Moulay Isma\u00efl, a accompli, samedi 10 Di Al Hijja 1446 de l\u0027H\u00e9gire, correspondant au 07 juin 2025, la pri\u00e8re de l\u0027A\u00efd Al-Adha b\u00e9ni \u00e0 la mosqu\u00e9e Hassan II \u00e0 T\u00e9touan. [www.lopinion.ma]\n-------------------------------------------------\nSa Majest\u00e9 le Roi Mohammed VI, Amir Al-Mouminine, que Dieu L\u2019assiste, accompagn\u00e9 de SAR le Prince H\u00e9ritier Moulay El Hassan, de SAR le Prince Moulay Rachid, de SA le Prince Moulay Ahmed et de SA le Prince Moulay Isma\u00efl, a accompli, samedi 10 Di Al Hijja 1446 de l\u2019H\u00e9gire, correspondant [www.challenge.ma]\n-------------------------------------------------\nSM le Roi Mohammed VI, Amir Al-Mouminine, accomplit la pri\u00e8re de l\u2019A\u00efd Al-Adha \u00e0 la mosqu\u00e9e Hassan II \u00e0 T\u00e9touan et re\u00e7oit les v\u0153ux en cette heureuse occasion. [aujourdhui.ma]\n-------------------------------------------------\nSa Majest\u00e9 le Roi Mohammed VI, Amir Al-Mouminine, que Dieu L\u2019assiste, accompagn\u00e9 de SAR le Prince H\u00e9ritier Moulay El Hassan, de SAR le Prince Moulay Rachid, de SA le Prince Moulay Ahmed et de SA le Prince Moulay Isma\u00efl, a accompli, samedi 10 Di Al Hijja 1446 de l\u2019H\u00e9gire, correspondant au 07 juin 2025, la [www.lereporter.ma]"}, {"borderWidth": 3, "fixed": true, "font": {"bold": true, "color": "#000", "size": 26}, "group": 3, "id": "comm_label_3", "label": "La capitale azurienne s\u2019appr\u00eate \u00e0\naccueillir, du 9 au 13...", "mass": 5, "physics": false, "shape": "box", "title": "La capitale azurienne s\u2019appr\u00eate \u00e0 accueillir, du 9 au 13 juin, la 3\u00e8 Conf\u00e9rence des Nations unies sur l\u2019Oc\u00e9an (UNOC-3), une occasion pour faire entendre la voix africaine pour le d\u00e9veloppement d\u2019une \u00e9conomie bleue inclusive et durable, au c\u0153ur des pr\u00e9occupations du Maroc, dot\u00e9 d\u2019une feuille de route ambitieuse dans [www.challenge.ma]\n-------------------------------------------------\nLe Royaume du Maroc prendra part, du 9 au 13 juin \u00e0 Nice, \u00e0 la troisi\u00e8me Conf\u00e9rence des Nations unies sur l\u2019Oc\u00e9an (UNOC-3), en co-pr\u00e9sidant, aux c\u00f4t\u00e9s de la France, le sommet \u00ab Afrique pour l\u2019Oc\u00e9an \u00bb. [lnt.ma]\n-------------------------------------------------\nLa capitale azurienne s\u2019appr\u00eate \u00e0 accueillir, du 9 au 13 juin, la 3\u00e8 Conf\u00e9rence des Nations unies sur l\u2019Oc\u00e9an (UNOC-3), une occasion pour faire entendre la voix africaine pour le d\u00e9veloppement d\u0027une \u00e9conomie bleue inclusive et durable, au c\u0153ur des pr\u00e9occupations du Maroc, dot\u00e9 d\u0027une feuille de route ambitieuse dans ce domaine. [www.lopinion.ma]"}, {"borderWidth": 3, "fixed": true, "font": {"bold": true, "color": "#000", "size": 26}, "group": 5, "id": "comm_label_5", "label": "A l\u2019occasion de l\u2019A\u00efd Al\nAdha de cette ann\u00e9e 1446...", "mass": 5, "physics": false, "shape": "box", "title": "A l\u2019occasion de l\u2019A\u00efd Al Adha de cette ann\u00e9e 1446 H \u2013 2025, le Roi Mohammed VI a accord\u00e9 sa Gr\u00e2ce \u00e0 1.526 personnes condamn\u00e9es par diff\u00e9rents tribunaux du Royaume, dont certaines sont en d\u00e9tention et d\u2019autres en libert\u00e9, indique un communiqu\u00e9 du minist\u00e8re de la Justice. [atlasinfo.fr]\n-------------------------------------------------\n\u00c0 l\u2019occasion de l\u2019A\u00efd Al-Adha 1446 H \u2013 2025 G, le Roi Mohammed VI a accord\u00e9 sa Gr\u00e2ce \u00e0 1.526 personnes condamn\u00e9es par les juridictions du Royaume. [lnt.ma]"}, {"borderWidth": 3, "fixed": true, "font": {"bold": true, "color": "#000", "size": 26}, "group": 0, "id": "comm_label_0", "label": "Les Bleus ont \u00e9t\u00e9 port\u00e9\npar Kylian Mbapp\u00e9, auteur d\u2019un...", "mass": 5, "physics": false, "shape": "box", "title": "Les Bleus ont \u00e9t\u00e9 port\u00e9 par Kylian Mbapp\u00e9, auteur d\u2019un but et d\u2019une passe pour Michael Olise. [fr.hespress.com]\n-------------------------------------------------\nLes buts fran\u00e7ais ont \u00e9t\u00e9 inscrits par le capitaine Kylian Mbapp\u00e9 (45e) et Michael Olise (84e). [lematin.ma]"}, {"borderWidth": 3, "fixed": true, "font": {"bold": true, "color": "#000", "size": 26}, "group": 4, "id": "comm_label_4", "label": "Sept personnes ont trouv\u00e9 la\nmort dans un accident survenu,...", "mass": 5, "physics": false, "shape": "box", "title": "Sept personnes ont trouv\u00e9 la mort dans un accident survenu, dimanche, sur la route nationale N23, au niveau de la commune de Sour El Aaz (Ca\u00efdat Sahrij), suite au renversement d\u2019un triporteur avec 14 individus \u00e0 bord se dirigeant vers un site d\u0027estivage, ont annonc\u00e9 les autorit\u00e9s locales. [www.lopinion.ma]\n-------------------------------------------------\nSept personnes ont trouv\u00e9 la mort dans un accident survenu, dimanche, sur la route nationale N23, au niveau de la commune de Sour El Aaz (Ca\u00efdat Sahrij), suite au renversement d\u2019un triporteur avec 14 individus \u00e0 bord se dirigeant vers un site d\u2019estivage, ont annonc\u00e9 les autorit\u00e9s locales. [aujourdhui.ma]"}]);
+                  edges = new vis.DataSet([{"font": {"align": "middle", "color": "#555555", "size": 18}, "from": 4, "length": 250, "title": "m\u00e9t\u00e9orologie, temp\u00e9rature, direction, mellilia, minimal", "to": 57, "width": 5}, {"font": {"align": "middle", "color": "#555555", "size": 18}, "from": 10, "length": 250, "title": "organisationnel, organisation, dispositif, supporter, respecter", "to": 72, "width": 5}, {"font": {"align": "middle", "color": "#555555", "size": 18}, "from": 10, "length": 250, "title": "organisationnel, organisation, dispositif, supporter, respecter", "to": 97, "width": 5}, {"font": {"align": "middle", "color": "#555555", "size": 18}, "from": 38, "length": 250, "title": "correspondre, accompagner, accomplir, mouminine, h\u00e9ritier", "to": 42, "width": 5}, {"font": {"align": "middle", "color": "#555555", "size": 18}, "from": 38, "length": 250, "title": "correspondre, accompagner, accomplir, mouminine, h\u00e9ritier", "to": 49, "width": 5}, {"font": {"align": "middle", "color": "#555555", "size": 18}, "from": 38, "length": 250, "title": "correspondre, accompagner, accomplir, mouminine, h\u00e9ritier", "to": 65, "width": 5}, {"font": {"align": "middle", "color": "#555555", "size": 18}, "from": 39, "length": 250, "title": "conf\u00e9rence, africain, afrique, nations, maroc", "to": 67, "width": 5}, {"font": {"align": "middle", "color": "#555555", "size": 18}, "from": 39, "length": 250, "title": "d\u00e9veloppement, pr\u00e9occupation, conf\u00e9rence, accueillir, azurienne", "to": 80, "width": 5}, {"font": {"align": "middle", "color": "#555555", "size": 18}, "from": 42, "length": 250, "title": "correspondre, accompagner, accomplir, mouminine, h\u00e9ritier", "to": 49, "width": 5}, {"font": {"align": "middle", "color": "#555555", "size": 18}, "from": 42, "length": 250, "title": "correspondre, accompagner, accomplir, mouminine, h\u00e9ritier", "to": 65, "width": 5}, {"font": {"align": "middle", "color": "#555555", "size": 18}, "from": 49, "length": 250, "title": "correspondre, accompagner, accomplir, mouminine, h\u00e9ritier", "to": 65, "width": 5}, {"font": {"align": "middle", "color": "#555555", "size": 18}, "from": 64, "length": 250, "title": "communiqu\u00e9, minist\u00e8re, condamner, personne, mohammed", "to": 66, "width": 5}, {"font": {"align": "middle", "color": "#555555", "size": 18}, "from": 67, "length": 250, "title": "conf\u00e9rence, africain, afrique, nations, sommet", "to": 80, "width": 5}, {"font": {"align": "middle", "color": "#555555", "size": 18}, "from": 70, "length": 250, "title": "allemagne, michael, finale, nation, mbapp\u00e9", "to": 75, "width": 5}, {"font": {"align": "middle", "color": "#555555", "size": 18}, "from": 72, "length": 250, "title": "organisationnel, organisation, commission, dispositif, supporter", "to": 97, "width": 5}, {"font": {"align": "middle", "color": "#555555", "size": 18}, "from": 81, "length": 250, "title": "renversement, triporteur, dirigeant, survenir, personne", "to": 90, "width": 5}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {"nodes": {"font": {"size": 16, "align": "middle"}, "scaling": {"min": 10, "max": 30}}, "edges": {"color": {"inherit": true}, "smooth": {"type": "continuous"}, "font": {"size": 10, "align": "middle"}, "label": {"enabled": true}}, "physics": {"solver": "forceAtlas2Based", "forceAtlas2Based": {"gravitationalConstant": -150, "centralGravity": 0.008, "springLength": 100, "springConstant": 0.08, "damping": 1.0, "avoidOverlap": 1.0}, "minVelocity": 0.75, "stabilization": {"enabled": true, "iterations": 200}}, "interaction": {"hover": true, "navigationButtons": false, "multiselect": true, "tooltipDelay": 300, "dragNodes": true}};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    
+<style>
+    #info-icon {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background-color: #cccccc;
+        color: white;
+        font-weight: bold;
+        font-family: Arial, sans-serif;
+        text-align: center;
+        line-height: 24px;
+        cursor: pointer;
+        z-index: 10000;
+    }
+
+    #tooltip {
+        display: none;
+        position: fixed;
+        top: 10px;
+        left: 45px;
+        background-color: rgba(50,50,50,0.95);
+        color: white;
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-size: 14px;
+        max-width: 90vw;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        z-index: 10001;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+        #info-icon:hover + #tooltip {
+            display: block;
+        }
+    }
+</style>
+
+<div id="info-icon" onclick="toggleTooltip()">i</div>
+<div id="tooltip">Carte générée par intelligence artificielle le 08/06/2025 à 18h27, à partir d'une analyse automatique de l'actualité. Elle met en évidence les sujets les plus traités par la presse ces dernières 24 heures. Prochaine mise à jour prévue à 07h30.</div>
+
+<script>
+    function toggleTooltip() {
+        const tooltip = document.getElementById('tooltip');
+        tooltip.style.display = (tooltip.style.display === 'block') ? 'none' : 'block';
+    }
+
+    // Cacher la tooltip quand on clique ailleurs
+    document.addEventListener('click', function(event) {
+        const icon = document.getElementById('info-icon');
+        const tooltip = document.getElementById('tooltip');
+        if (!icon.contains(event.target) && !tooltip.contains(event.target)) {
+            tooltip.style.display = 'none';
+        }
+    });
+</script>
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script type="text/javascript">
+
+
+        function positionCommunityLabels() {
+
+            var communities = {};
+
+            for (var nodeId in network.body.nodes) {
+                var node = network.body.nodes[nodeId];
+
+                if (nodeId.toString().indexOf('comm_label_') === 0) {
+                    continue;
+                }
+
+                var groupId = node.options.group;
+                if (groupId !== undefined) {
+                    if (!communities[groupId]) {
+                        communities[groupId] = {nodes: [], x: 0, y: 0};
+                    }
+                    communities[groupId].nodes.push(nodeId);
+                    communities[groupId].x += node.x;
+                    communities[groupId].y += node.y;
+                }
+            }
+
+
+            for (var groupId in communities) {
+                var comm = communities[groupId];
+                var numNodes = comm.nodes.length;
+
+                if (numNodes > 0) {
+                    var centerX = comm.x / numNodes;
+                    var centerY = comm.y / numNodes;
+                    var labelId = 'comm_label_' + groupId;
+
+
+                    if (network.body.nodes[labelId]) {
+                        network.body.data.nodes.update({
+                            id: labelId,
+                            x: centerX,
+                            y: centerY,
+                            fixed: {
+                                x: true,
+                                y: true
+                            }
+                        });
+                    } 
+                }
+            }
+        }
+
+        network.once("stabilized", function() {
+            setTimeout(positionCommunityLabels, 100);
+        });
+
+        window.addEventListener('resize', function() {
+            setTimeout(positionCommunityLabels, 50);
+        });
+
+
+        network.on("dragEnd", function(params) {
+            setTimeout(positionCommunityLabels, 50);
+        });
+
+        network.on("afterDrawing", function() {
+            if (!window.labelUpdateTimeout) {
+                window.labelUpdateTimeout = setTimeout(function() {
+                    positionCommunityLabels();
+                    window.labelUpdateTimeout = null;
+                }, 100);
+            }
+        });
+
+
+
+
+        network.on("doubleClick", function(params) {
+            if (params.nodes.length > 0) {
+                var nodeId = params.nodes[0];
+                var node = network.body.nodes[nodeId];
+                var url = node.options.url;
+                if (url && url !== '#') {
+                    window.open(url, '_blank');
+                }
+            }
+        });
+
+        network.on("hold", function(params) {
+            if (params.nodes.length > 0) {
+                var nodeId = params.nodes[0];
+                var node = network.body.nodes[nodeId];
+                var url = node.options.url;
+                if (url && url !== '#') {
+                    window.open(url, '_blank');
+                }
+            }
+        });
+
+        function adjustForScreenSize() {
+            var isMobile = window.innerWidth < 768;
+            var options = {
+                nodes: {
+                    font: { size: isMobile ? 18 : 20 },
+                    scaling: { min: isMobile ? 5 : 10, max: isMobile ? 20 : 30 }
+                },
+                physics: {
+                    barnesHut: {
+                        gravitationalConstant: isMobile ? -1000 : -2000,
+                        springLength: isMobile ? 80 : 120
+                    }
+                }
+            };
+            network.setOptions(options);
+        }
+
+
+
+
+
+
+    function addScrollButtonsToTooltips() {
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.addedNodes.length) {
+                    Array.from(mutation.addedNodes).forEach(function(node) {
+                        if (node.classList && node.classList.contains('vis-tooltip')) {
+                            if (node.scrollHeight > node.clientHeight) {
+                                const scrollButtons = document.createElement('div');
+                                scrollButtons.className = 'scroll-buttons';
+                                
+                                const scrollUp = document.createElement('div');
+                                scrollUp.className = 'scroll-up';
+                                scrollUp.innerHTML = '▲';
+                                scrollUp.onclick = function() {
+                                    node.scrollBy(0, -50);
+                                };
+                                
+                                const scrollDown = document.createElement('div');
+                                scrollDown.className = 'scroll-down';
+                                scrollDown.innerHTML = '▼';
+                                scrollDown.onclick = function() {
+                                    node.scrollBy(0, 50);
+                                };
+                                
+                                scrollButtons.appendChild(scrollUp);
+                                scrollButtons.appendChild(scrollDown);
+                                node.appendChild(scrollButtons);
+                            }
+                        }
+                    });
+                }
+            });
+        });
+        
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    }
+    
+    
+    
+        window.addEventListener('load', adjustForScreenSize);
+        window.addEventListener('resize', adjustForScreenSize);
+
+
+    
+    document.addEventListener('DOMContentLoaded', addScrollButtonsToTooltips);
+
+
+
+    </script>
+    </body>
     
 </html>
