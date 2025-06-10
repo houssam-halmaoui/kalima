@@ -31,6 +31,7 @@
             --text-color: #333;
             --border-radius: 8px;
             --transition: all 0.3s ease;
+	    --vh: 1vh;
         }
         * {
             box-sizing: border-box;
@@ -50,10 +51,10 @@
 	background-color: var(--background-color);
 	margin: 0;
 	padding: 0;
-	height: 100vh;
+        height: calc(var(--vh, 1vh) * 100);
 	display: flex;
 	flex-direction: column;
-	      overflow: hidden;
+	overflow: hidden;
 
      	}
         header {
@@ -331,6 +332,12 @@
 
             initializeFromUrl();
         });
+	function setViewportHeight() {
+	    document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
+	  }
+	  window.addEventListener('resize', setViewportHeight);
+	  window.addEventListener('orientationchange', setViewportHeight);
+	  setViewportHeight();	    
     </script>
 </body>
 
