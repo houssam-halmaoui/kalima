@@ -258,12 +258,21 @@
             const updatePage = () => {
                 const view = document.querySelector('input[name="view"]:checked')?.value || '2';
                 const lang = document.querySelector('input[name="lang"]:checked')?.value || 'ar';
-                const filename = `${lang}${view}.html`;
-                
-                if (iframe.src.endsWith(filename)) return;
-
-                showLoading();
-                iframe.src = filename;
+                let folder = '';
+		let filename = '';
+		
+		if (view === '1') {
+		folder = lang === 'ar' ? 'pages_ar' : 'pages_fr';
+		} else {
+		folder = lang === 'ar' ? 'pages_carousel_ar' : 'pages_carousel_fr';
+		}
+		
+		filename = `${folder}/${lang}${view}.html`;
+		
+		if (iframe.src.endsWith(filename)) return;
+		
+		showLoading();
+		iframe.src = filename;
 
                 if (history.pushState) {
                     const url = new URL(window.location);
