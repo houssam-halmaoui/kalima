@@ -1,1 +1,470 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أهم الأخبار - Treemap Carousel</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/9.4.1/swiper-bundle.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/9.4.1/swiper-bundle.min.js"></script>
+    
+    
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f4f4f4;
+              
+        }
+        
+        .swiper {
+            width: 100%;
+            height: 90vh;
+            margin-top: 10px;
+        }
+        
+        .swiper-slide {
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 10px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin: 10px;
+            width: calc(100% - 20px); /* Utilisez calc pour soustraire les marges */
+            margin-left: auto;
+            margin-right: auto;
 
+        }
+        
+        .treemap-container {
+           width: 100%;
+            height: 100%;
+            margin-bottom: 10px;
+            direction: rtl; /* Changez rtl en ltr */
+            position: relative;
+          z-index: 1;
+
+        }
+        
+        .community-title {
+            font-size: 16px;  
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+            position: relative;
+              z-index: 10;
+              padding: 10px;
+              background: rgba(255, 255, 255, 0.8); /* Fond semi-transparent pour contraste */
+              text-align: center;
+        }
+        
+        .node {
+            overflow: hidden;
+            border: 1px solid white;
+            position: absolute;
+            transition: all 0.3s;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .node:hover {
+            opacity: 0.9;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+        
+        .node-content {
+            padding: 8px;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .node-title {
+            font-size: 14px;  
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        
+        .node-source {
+            font-size: 12px;  
+            color: #666;
+        }
+        
+        .tooltip {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.3);
+            font-size: 16px; 
+            max-width: 90%;
+            width: 350px;
+            color: #333;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            direction: rtl;
+            text-align: right;
+        }
+        
+        .tooltip-title {
+            font-size: 16px;  
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .tooltip-source {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 10px;
+        }
+        
+        .tooltip-summary {
+            font-size: 15px;
+            line-height: 1.4;
+        }
+        
+        .swiper-pagination {
+            position: relative;
+            bottom: 0;
+            margin-top: 15px;
+        }
+        
+        .swiper-pagination-bullet {
+            width: 12px;
+            height: 12px;
+            background-color: #ccc;
+            opacity: 0.7;
+            transition: all 0.3s;
+        }
+        
+        .swiper-pagination-bullet-active {
+            background-color: #007aff;
+            opacity: 1;
+            width: 20px;
+            border-radius: 6px;
+        }
+        
+        .swiper-button-next, .swiper-button-prev {
+            color: #fff;
+            background-color: rgba(0, 0, 0, 0.4);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+        
+        .swiper-button-next:hover, .swiper-button-prev:hover {
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+        
+        .swiper-button-next:after, .swiper-button-prev:after {
+            font-size: 18px;
+        }
+        
+        header {
+            background-color: #333;
+            color: white;
+            text-align: center;
+        }
+        
+        .header-title {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .header-subtitle {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        @media screen and (max-width: 768px) {
+            .node-title {
+                font-size: 14px;  
+            }
+            .node-source {
+                font-size: 12px;  
+            }
+            .community-title {
+                font-size: 16px;  
+            }
+            .tooltip {
+                max-width: 90%;
+                padding: 12px;
+            }
+            .tooltip-title {
+                font-size: 16px;
+            }
+            .swiper-button-next, .swiper-button-prev {
+                width: 36px;
+                height: 36px;
+            }
+        }
+    </style>
+    
+    
+    
+</head>
+<body>
+    <header> 
+        <div class="header-title">أهم الأخبار لآخر 24 ساعة
+
+</div>    
+        <div class="header-subtitle"> آخر تحديث : 12/06/2025 - 07h27</div>  
+    </header>
+    
+    
+
+    <div class="swiper mySwiper">
+        <div class="swiper-wrapper" id="treemap-carousel"> </div>
+        <div class="swiper-pagination"></div>
+        <div class="swiper-button-next"></div>
+        <div class="swiper-button-prev"></div>
+    </div>
+
+    <div id="tooltip" class="tooltip"></div>
+
+    <script>
+        const treemapData = [{'community_id': '0', 'articles': [{'id': '68', 'title': 'توقيف 9 أشخاص بالناظور وجرسيف في قضية تزوير محررات رسمية واستعمالها في تنظيم الهجرة غير الشرعية', 'source': 'www.alahdat.net', 'link': 'https://www.alahdat.net/archives/201966', 'summary': 'توقيف 9 أشخاص بالناظور وجرسيف في قضية تزوير محررات رسمية واستعمالها في تنظيم الهجرة غير الشرعية.  تمكنت عناصر الشرطة القضائية بمدينتي الناظور وجرسيف بتنسيق مع مصالح المديرية العامة لمراقبة التراب الوطني، صباح الأربعاء، من توقيف تسعة أشخاص يشتبه في تورطهم في قضية تتعلق بتزوير محررات رسمية واستعمالها في إعداد ملفات طلب تأشيرات شينغن وتنظيم الهجرة غير الشرعية والاتجار بالبشر. وذكر مصدر أمني أنه بحسب المعلومات الأولية للبحث، فإن المشتبه', 'size': 2}, {'id': '207', 'title': 'تفكيك شبكة بالناظور وجرسيف في قضية تزوير محررات رسمية واستعمالها في تنظيم الهجرة السرية', 'source': 'machahid24.com', 'link': 'https://machahid24.com/home/466187.html', 'summary': 'تفكيك شبكة بالناظور وجرسيف في قضية تزوير محررات رسمية واستعمالها في تنظيم الهجرة السرية. تمكنت عناصر الشرطة القضائية بمدينتي الناظور وجرسيف بتنسيق مع مصالح المديرية العامة لمراقبة التراب الوطني، صباح اليوم الأربعاء، من توقيف تسعة أشخاص يشتبه في تورطهم في قضية تتعلق بتزوير محررات رسمية واستعمالها في إعداد ملفات طلب تأشيرات شينغن وتنظيم الهجرة غير الشرعية والاتجار بالبشر. وذكر مصدر أمني أنه بحسب المعلومات الأولية للبحث، فإن المشتبه فيهم …', 'size': 2}], 'main_title': 'توقيف 9 أشخاص بالناظور وجرسيف في قضية تزوير محررات رسمية واستعمالها في تنظيم الهجرة غير الشرعية'}, {'community_id': '1', 'articles': [{'id': '87', 'title': 'تسجيل ثاني أكثر شهور ماي حرارة على الإطلاق هذا العام', 'source': 'www.akhbarona.com', 'link': 'https://www.akhbarona.com/technology/407385.html', 'summary': 'تسجيل ثاني أكثر شهور ماي حرارة على الإطلاق هذا العام. سجل شهر ماي الماضي ثاني أعلى متوسط حرارة شهري تم رصده عالميا منذ بدء تسجيل درجات الحرارة، وفقا لمرصد (كوبرنيكوس) للمناخ التابع للاتحاد الأوروبي. وأكد المرصد', 'size': 2}, {'id': '258', 'title': 'العالم يشهد ثاني أكثر شهور ماي حرارة على الإطلاق', 'source': 'www.barlamane.com', 'link': 'https://www.barlamane.com/%d8%a7%d9%84%d8%b9%d8%a7%d9%84%d9%85-%d9%8a%d8%b4%d9%87%d8%af-%d8%ab%d8%a7%d9%86%d9%8a-%d8%a3%d9%83%d8%ab%d8%b1-%d8%b4%d9%87%d9%88%d8%b1-%d9%85%d8%a7%d9%8a-%d8%ad%d8%b1%d8%a7%d8%b1%d8%a9-%d8%b9%d9%84/', 'summary': 'العالم يشهد ثاني أكثر شهور ماي حرارة على الإطلاق. سجل شهر ماي الماضي ثاني أعلى متوسط حرارة شهري تم رصده عالميا منذ بدء تسجيل درجات الحرارة. وأكد مرصد (كوبرنيكوس) للمناخ التابع للاتحاد الأوروبي، في نشرته الشهرية، أن الشهر الماضي كان “ثاني أكثر شهر ماي دفئا على الإطلاق على الكوكب ولم يتجاوزه إلا ماي 2024”. وأضاف أن شهر ماي كان “متمما لثاني أكثر …  العالم يشهد ثاني أكثر شهور ماي حرارة على الإطلاق     .', 'size': 2}], 'main_title': 'تسجيل ثاني أكثر شهور ماي حرارة على الإطلاق هذا العام'}, {'community_id': '4', 'articles': [{'id': '144', 'title': 'رفع “اللواء الأزرق” بـ 28 شاطئا وأربعة موانئ ترفيهية وبحيرة جبلية واحدة برسم صيف 2025', 'source': 'aljarida24.ma', 'link': 'https://aljarida24.ma/p/actualites/315215/', 'summary': 'رفع “اللواء الأزرق” بـ 28 شاطئا وأربعة موانئ ترفيهية وبحيرة جبلية واحدة برسم صيف 2025. سيتم خلال موسم صيف 2025، رفع “اللواء الأزرق” الذي تمنحه سنويا مؤسسة التربية البيئية وتبنته في المغرب منذ سنة 2002 مؤسسة محمد السادس لحماية البيئة، التي تترأسها صاحبة السمو الملكي الأميرة للا حسناء، في 28 شاطئا وأربعة موانئ ترفيهية وبحيرة جبلية واحدة. وأوضح بلاغ لمؤسسة محمد السادس لحماية البيئة أن جميع الشواطئ الـ27 التي حصلت', 'size': 4}, {'id': '195', 'title': 'اللواء الأزرق يرفرف بـ27 شاطئاً فقط صالحاً للسياحة بكافة السواحل المغربية', 'source': 'rue20.com', 'link': 'https://rue20.com/912174.html', 'summary': 'اللواء الأزرق يرفرف بـ27 شاطئاً فقط صالحاً للسياحة بكافة السواحل المغربية. . الرباط سيتم خلال موسم صيف 2025، رفع “اللواء الأزرق” الذي تمنحه سنويا مؤسسة التربية البيئية وتبنته في المغرب منذ سنة 2002 مؤسسة محمد السادس لحماية البيئة، التي تترأسها صاحبة السمو الملكي الأميرة للا حسناء، في 28 شاطئا وأربعة موانئ ترفيهية وبحيرة جبلية واحدة. وأوضح بلاغ لمؤسسة محمد السادس لحماية البيئة أن جميع الشواطئ الخبر اللواء الأزرق يرفرف بـ27 شاطئاً فقط صالحاً للسياحة بكافة السواحل المغربية  .', 'size': 4}, {'id': '202', 'title': 'صيف 2025.. رفع “اللواء الأزرق” بـ 28 شاطئا و4 موانئ ترفيهية وبحيرة جبلية واحدة', 'source': 'machahid24.com', 'link': 'https://machahid24.com/home/466200.html', 'summary': 'صيف 2025.. رفع “اللواء الأزرق” بـ 28 شاطئا و4 موانئ ترفيهية وبحيرة جبلية واحدة. متابعة سيتم خلال موسم صيف 2025، رفع “اللواء الأزرق” الذي تمنحه سنويا مؤسسة التربية البيئية وتبنته في المغرب منذ سنة 2002 مؤسسة محمد السادس لحماية البيئة، التي تترأسها الأميرة للا حسناء، في 28 شاطئا وأربعة موانئ ترفيهية وبحيرة جبلية واحدة. وأوضح بلاغ لمؤسسة محمد السادس لحماية البيئة أن جميع الشواطئ الـ27 التي حصلت على “اللواء الأزرق” في …', 'size': 4}, {'id': '253', 'title': 'المغرب يرفع “اللواء الأزرق” في 28 شاطئاً وأربعة موانئ وبحيرة جبلية خلال صيف 2025', 'source': 'www.barlamane.com', 'link': 'https://www.barlamane.com/%d8%a7%d9%84%d9%85%d8%ba%d8%b1%d8%a8-%d9%8a%d8%b1%d9%81%d8%b9-%d8%a7%d9%84%d9%84%d9%88%d8%a7%d8%a1-%d8%a7%d9%84%d8%a3%d8%b2%d8%b1%d9%82-%d9%81%d9%8a-28-%d8%b4%d8%a7%d8%b7%d8%a6%d8%a7%d9%8b-%d9%88/', 'summary': 'المغرب يرفع “اللواء الأزرق” في 28 شاطئاً وأربعة موانئ وبحيرة جبلية خلال صيف 2025. أعلنت مؤسسة محمد السادس لحماية البيئة، التي ترأسها صاحبة السمو الملكي الأميرة للا حسناء، أنه سيتم رفع شارة “اللواء الأزرق” خلال موسم صيف 2025 في 28 شاطئا وأربعة موانئ ترفيهية وبحيرة جبلية واحدة، وذلك في إطار برنامج “شواطئ نظيفة”. وأوضح بلاغ صادر عن المؤسسة أن الشواطئ الـ27 التي حصلت على الشارة في صيف …  المغرب يرفع “اللواء الأزرق” في 28 شاطئاً وأربعة موانئ وبحيرة جبلية خلال صيف 2025     .', 'size': 4}], 'main_title': 'رفع “اللواء الأزرق” بـ 28 شاطئا وأربعة موانئ ترفيهية وبحيرة جبلية واحدة برسم صيف 2025'}, {'community_id': '3', 'articles': [{'id': '146', 'title': 'المغرب يدين تعنت الجزائر التي ترهن العملية السياسية على حساب الاستقرار الإقليمي', 'source': 'aljarida24.ma', 'link': 'https://aljarida24.ma/p/actualites/315218/', 'summary': 'المغرب يدين تعنت الجزائر التي ترهن العملية السياسية على حساب الاستقرار الإقليمي. أدان المغرب، أمس الثلاثاء أمام لجنة الـ24 التابعة للأمم المتحدة، تعنت الجزائر التي ترهن العملية السياسية الخاصة بالصحراء المغربية، على حساب الاستقرار الإقليمي. وخلال الدورة العادية للجنة الـ24، المنعقدة ما بين 9 و20 يونيو الجاري، أكدت نائبة السفير الممثل الدائم للمغرب لدى الأمم المتحدة، ماجدة موتشو، أن “العملية السياسية الجارية تحت إشراف الأمين العام والتي', 'size': 4}, {'id': '197', 'title': 'المغرب يدين بالأمم المتحدة تورط الجزائر في دعم مخططات الإنفصال وزعزعة إستقرار الدول', 'source': 'rue20.com', 'link': 'https://rue20.com/912158.html', 'summary': 'المغرب يدين بالأمم المتحدة تورط الجزائر في دعم مخططات الإنفصال وزعزعة إستقرار الدول. . الرباط أدان المغرب، أمس الثلاثاء أمام لجنة الـ24 التابعة للأمم المتحدة، تعنت الجزائر التي ترهن العملية السياسية الخاصة بالصحراء المغربية، على حساب الاستقرار الإقليمي. وخلال الدورة العادية للجنة الـ24، المنعقدة ما بين 9 و20 يونيو الجاري، أكدت نائبة السفير الممثل الدائم للمغرب لدى الأمم المتحدة، ماجدة موتشو، أن “العملية السياسية الجارية تحت إشراف الخبر المغرب يدين بالأمم المتحدة تورط الجزائر في دعم مخططات الإنفصال وزعزعة إستقرار الدول  .', 'size': 3}, {'id': '205', 'title': 'الصحراء.. المغرب يدين تعنت الجزائر التي ترهن العملية السياسية على حساب الاستقرار الإقليمي', 'source': 'machahid24.com', 'link': 'https://machahid24.com/politique/466193.html', 'summary': 'الصحراء.. المغرب يدين تعنت الجزائر التي ترهن العملية السياسية على حساب الاستقرار الإقليمي. و.م.ع أدان المغرب، أمس الثلاثاء أمام لجنة الـ24 التابعة للأمم المتحدة، تعنت الجزائر التي ترهن العملية السياسية الخاصة بالصحراء المغربية، على حساب الاستقرار الإقليمي. وخلال الدورة العادية للجنة الـ24، المنعقدة ما بين 9 و20 يونيو الجاري، أكدت نائبة السفير الممثل الدائم للمغرب لدى الأمم المتحدة، ماجدة موتشو، أن “العملية السياسية الجارية تحت إشراف الأمين العام …', 'size': 3}, {'id': '252', 'title': 'الأمم المتحدة.. المغرب يدافع عن واقعية مبادرة الحكم الذاتي في الصحراء المغربية ويفضح ازدواجية الجزائر', 'source': 'www.barlamane.com', 'link': 'https://www.barlamane.com/%d8%a7%d9%84%d8%a3%d9%85%d9%85-%d8%a7%d9%84%d9%85%d8%aa%d8%ad%d8%af%d8%a9-%d8%a7%d9%84%d9%85%d8%ba%d8%b1%d8%a8-%d9%8a%d8%af%d8%a7%d9%81%d8%b9-%d8%b9%d9%86-%d9%88%d8%a7%d9%82%d8%b9%d9%8a%d8%a9-%d9%85/', 'summary': 'الأمم المتحدة.. المغرب يدافع عن واقعية مبادرة الحكم الذاتي في الصحراء المغربية ويفضح ازدواجية الجزائر. جدد المغرب، أمس الثلاثاء، أمام لجنة الـ24 التابعة للأمم المتحدة، إدانته لموقف الجزائر المتعنت، متهما إياها بعرقلة العملية السياسية بشأن الصحراء المغربية وتعريض الاستقرار الإقليمي للخطر. وخلال مناقشات لجنة الـ24 في دورتها العادية المنعقدة من 9 إلى 20 يونيو الجاري، شددت نائبة السفير الممثل الدائم للمغرب لدى الأمم المتحدة، ماجدة موتشو، على أن …  الأمم المتحدة.. المغرب يدافع عن واقعية مبادرة الحكم الذاتي في الصحراء المغربية ويفضح ازدواجية الجزائر     .', 'size': 4}], 'main_title': 'المغرب يدين تعنت الجزائر التي ترهن العملية السياسية على حساب الاستقرار الإقليمي'}, {'community_id': '5', 'articles': [{'id': '148', 'title': 'الدار البيضاء.. توقيف زوجين بحوزتهما وثائق مزورة و15 بطاقة بنكية', 'source': 'aljarida24.ma', 'link': 'https://aljarida24.ma/p/actualites/315221/', 'summary': 'الدار البيضاء.. توقيف زوجين بحوزتهما وثائق مزورة و15 بطاقة بنكية. تمكنت عناصر المصلحة الولائية للشرطة القضائية بمدينة الدار البيضاء، يوم أمس الثلاثاء 10 يونيو الجاري، من توقيف زوجين يبلغان من العمر 28 و30 سنة، وذلك للاشتباه في تورطهما في قضية تتعلق بالتزوير واستعماله وانتحال هوية الغير. وقد جرى توقيف المشتبه بهما في حالة تلبس بحيازة سندات تعريفية مزورة، تتضمن هويات مزيفة، في حين أسفرت عملية', 'size': 2}, {'id': '180', 'title': 'ضبط رجل وزوجته جعلا منزلهما مقرا لتزوير وثائق الهوية في الدار البيضاء', 'source': 'ar.telquel.ma', 'link': 'https://ar.telquel.ma/%d8%b6%d8%a8%d8%b7-%d8%b1%d8%ac%d9%84-%d9%88%d8%b2%d9%88%d8%ac%d8%aa%d9%87-%d8%ac%d8%b9%d9%84%d8%a7-%d9%85%d9%86%d8%b2%d9%84%d9%87%d9%85%d8%a7-%d9%85%d9%82%d8%b1%d8%a7-%d9%84%d8%aa%d8%b2%d9%88%d9%8a/', 'summary': 'ضبط رجل وزوجته جعلا منزلهما مقرا لتزوير وثائق الهوية في الدار البيضاء. تمكنت عناصر المصلحة الولائية للشرطة القضائية بمدينة الدار البيضاء، أمس الثلاثاء، من توقيف زوجين يبلغان من العمر 28 و30 سنة، وذلك للاشتباه في تورطهما في قضية تتعلق بالتزوير واستعماله وانتحال هوية الغير. وقد جرى توقيف المشتبه بهما في حالة تلبس بحيازة سندات تعريفية مزورة، تتضمن هويات مزيفة، في حين أسفرت عملية التفتيش المنجزة بداخل منزلهما  ضبط رجل وزوجته جعلا منزلهما مقرا لتزوير وثائق الهوية في الدار البيضاء     .', 'size': 2}], 'main_title': 'الدار البيضاء.. توقيف زوجين بحوزتهما وثائق مزورة و15 بطاقة بنكية'}, {'community_id': '2', 'articles': [{'id': '234', 'title': 'العلمي يتباحث مع فريق عمل من منظمتي “الإنتوساي”  والتعاون والتنمية الاقتصادية', 'source': 'www.cawalisse.com', 'link': 'https://www.cawalisse.com/222601/', 'summary': 'العلمي يتباحث مع فريق عمل من منظمتي “الإنتوساي” والتعاون والتنمية الاقتصادية. كواليس اليوم أجرى رئيس مجلس النواب، راشيد الطالبي العلمي، اليوم الأربعاء بمقر المجلس بالرباط، مباحثات مع فريق عمل من المنظمة الدولية للأجهزة العليا للرقابة المالية العامة والمحاسبة (الإنتوساي) ومنظمة التعاون والتنمية الاقتصادية، الذي يقوم بزيارة للمملكة خلال الفترة الممتدة من 10 إلى 13 يونيو الجاري. وذكر بلاغ للمجلس أن المباحثات بين الجانبين', 'size': 2}, {'id': '242', 'title': 'رئيس البرلمان يجري مباحثات مع المنظمة الدولية للأجهزة العليا للرقابة المالية العامة والمحاسبة', 'source': 'almassaa.com', 'link': 'https://almassaa.com/%d8%b1%d8%a6%d9%8a%d8%b3-%d8%a7%d9%84%d8%a8%d8%b1%d9%84%d9%85%d8%a7%d9%86-%d9%8a%d8%ac%d8%b1%d9%8a-%d9%85%d8%a8%d8%a7%d8%ad%d8%ab%d8%a7%d8%aa-%d9%85%d8%b9-%d8%a7%d9%84%d9%85%d9%86%d8%b8%d9%85%d8%a9/', 'summary': 'رئيس البرلمان يجري مباحثات مع المنظمة الدولية للأجهزة العليا للرقابة المالية العامة والمحاسبة. المساء اليوم – الرباط: أجرى رئيس مجلس النواب، راشيد الطالبي العلمي، اليوم الأربعاء بمقر المجلس بالرباط، مباحثات مع فريق عمل من المنظمة الدولية للأجهزة العليا للرقابة المالية العامة والمحاسبة (الإنتوساي) ومنظمة التعاون والتنمية الاقتصادية، الذي', 'size': 2}], 'main_title': 'العلمي يتباحث مع فريق عمل من منظمتي “الإنتوساي”  والتعاون والتنمية الاقتصادية'}];
+        
+        const tooltip = d3.select("#tooltip");
+        
+        const communityColors = d3.scaleOrdinal()
+            .domain(treemapData.map(d => d.community_id))
+            .range(d3.quantize(d3.interpolateRainbow, treemapData.length));
+        
+        let clickTimer = null;
+        let clickCount = 0;
+        
+        function createTreemap(data, containerId) {
+            const container = d3.select(`#${containerId}`);
+            const width = container.node().getBoundingClientRect().width;
+            const height = container.node().getBoundingClientRect().height;
+            
+            const sources = [...new Set(data.articles.map(d => d.source))];
+            const color = d3.scaleOrdinal()
+                .domain(sources)
+                .range(d3.quantize(d3.interpolateHcl("#007FFF", "#FFA500"), sources.length));
+            
+            
+            
+            const hierarchyData = {
+                name: "root",
+                children: data.articles
+            };
+            
+            const root = d3.hierarchy(hierarchyData)
+                .sum(d => d.size || 1)
+                .sort((a, b) => b.value - a.value);
+            
+            const treemap = d3.treemap()
+                .size([width, height])
+                .padding(4)
+                .round(true);
+            
+            treemap(root);
+            
+            const nodes = container.selectAll(".node")
+                .data(root.leaves())
+                .enter()
+                .append("div")
+                .attr("class", "node")
+                .style("left", d => `${d.x0}px`)
+                .style("top", d => `${d.y0}px`)
+                .style("width", d => `${d.x1 - d.x0}px`)
+                .style("height", d => `${d.y1 - d.y0}px`)
+                .style("background-color", d => color(d.data.source))
+                .on("click", function(event, d) {
+                    clickCount++;
+                    
+                    if (clickCount === 1) {
+                        showTooltip(event, d);
+                        
+                        clickTimer = setTimeout(function() {
+                            clickCount = 0;
+                        }, 300);
+                    } else {
+                        // Double clic - ouvrir le lien
+                        clearTimeout(clickTimer);
+                        clickCount = 0;
+                        if (d.data.link && d.data.link !== "#") {
+                            window.open(d.data.link, '_blank');
+                        }
+                    }
+                })
+                .on("mouseover", function(event, d) {
+                    if (window.innerWidth > 768) {
+                        showTooltip(event, d);
+                    }
+                })
+                .on("mousemove", function(event) {
+                    if (window.innerWidth > 768) {
+                        moveTooltip(event);
+                    }
+                })
+                .on("mouseout", function() {
+                    if (window.innerWidth > 768 && clickCount === 0) {
+                        hideTooltip();
+                    }
+                });
+            
+            nodes.append("div")
+                .attr("class", "node-content")
+                .html(d => `
+                    <div class="node-title">${d.data.title ?  d.data.title : 'Sans titre'}</div>
+                    <div class="node-source">${d.data.source}</div>
+                `);
+        }
+        
+        function showTooltip(event, d) {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = d.data.summary || '';
+
+            const cleanSummary = tempDiv.textContent || tempDiv.innerText || '';
+
+            tooltip.style("opacity", 1)
+                .html(`
+                    <div class="tooltip-title">${d.data.title}</div>
+                    <div class="tooltip-source">${d.data.source}</div>
+                    <div class="tooltip-summary">${cleanSummary ? cleanSummary : ''}</div>
+                `);
+
+            moveTooltip(event);
+        }
+        
+        function moveTooltip(event) {
+            const tooltipNode = tooltip.node();
+            const tooltipWidth = tooltipNode.offsetWidth;
+            const tooltipHeight = tooltipNode.offsetHeight;
+            
+            let left = event.pageX + 15;
+            let top = event.pageY + 15;
+            
+            if (left + tooltipWidth > window.innerWidth) {
+                left = event.pageX - tooltipWidth - 15;
+            }
+            
+            if (top + tooltipHeight > window.innerHeight) {
+                top = event.pageY - tooltipHeight - 15;
+            }
+            
+            if (window.innerWidth <= 768) {
+                left = (window.innerWidth - tooltipWidth) / 2;
+                top = window.scrollY + (window.innerHeight - tooltipHeight) / 3;
+            }
+            
+            tooltip.style("left", `${left}px`)
+                .style("top", `${top}px`);
+        }
+        
+        function hideTooltip() {
+            tooltip.style("opacity", 0);
+        }
+        
+        document.addEventListener('click', function(event) {
+            if (window.innerWidth <= 768 && 
+                !event.target.closest('.node') && 
+                !event.target.closest('.tooltip')) {
+                hideTooltip();
+            }
+        });
+        
+        function initCarousel() {
+            const carouselContainer = document.getElementById('treemap-carousel');
+            
+            treemapData.forEach((data, index) => {
+                const slide = document.createElement('div');
+                slide.className = 'swiper-slide';
+                
+                const title = document.createElement('div');
+                title.className = 'community-title';
+                title.textContent = data.main_title;
+                slide.appendChild(title);
+                
+                const treemapContainer = document.createElement('div');
+                treemapContainer.className = 'treemap-container';
+                treemapContainer.id = `treemap-${data.community_id}`;
+                slide.appendChild(treemapContainer);
+                
+                carouselContainer.appendChild(slide);
+            });
+            
+            const swiper = new Swiper(".mySwiper", {
+                pagination: {
+                    el: ".swiper-pagination",
+                    clickable: true,
+                    
+                },
+                navigation: {
+                    nextEl: ".swiper-button-next",
+                    prevEl: ".swiper-button-prev",
+                },
+                spaceBetween: 30,
+                
+                keyboard: {
+                    enabled: true,
+                },
+                grabCursor: true, 
+                effect: "slide", 
+                speed: 600, 
+                loop: true, 
+                spaceBetween: 30,
+                on: {
+                    slideChange: function() {
+                        setTimeout(function() {
+                            window.dispatchEvent(new Event('resize'));
+                            hideTooltip();
+                        }, 300);
+                    }
+                }
+            });
+            
+            setTimeout(() => {
+                treemapData.forEach(data => {
+                    createTreemap(data, `treemap-${data.community_id}`);
+                });
+            }, 300);
+            
+            window.addEventListener('resize', () => {
+                treemapData.forEach(data => {
+                    const container = document.getElementById(`treemap-${data.community_id}`);
+                    container.innerHTML = ''; 
+                    createTreemap(data, `treemap-${data.community_id}`);
+                });
+                hideTooltip();
+            });
+        }
+        
+        window.addEventListener('load', initCarousel);
+        
+    </script>
+    
+</body>
+
+
+
+</html>
+    
